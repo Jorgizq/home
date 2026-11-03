@@ -568,7 +568,7 @@
    "alto": 75
   },
   {
-   "nombre": "Armario empotrado (pasillo)",
+   "nombre": "Despensa empotrada (pasillo, junto a la cocina)",
    "habitacion": "pasillo",
    "caja": [
     [
@@ -584,7 +584,7 @@
    "nota": "frente a x≈760; la pared real sigue recta en x≈810"
   },
   {
-   "nombre": "Armario empotrado / despensa (tendedero)",
+   "nombre": "Armario empotrado (tendedero)",
    "habitacion": "tendedero",
    "caja": [
     [
