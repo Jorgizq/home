@@ -1,0 +1,4 @@
+# escaneos descomprimidos y temporales
+scans/raw/
+*.npy
+__pycache__/
