@@ -1,0 +1,23 @@
+{
+ "nota": "Borrador de puntos de luz, situados con el techo del escaneo (tools/escaneo/techo.py) y las fotos. x,y en cm como layout.json; z = altura del punto de luz. 'entidad' se rellena con la lista de Home Assistant.",
+ "luces": [
+  {"n": 1, "nombre": "Ventilador con luz", "habitacion": "salon", "tipo": "techo", "x": 470, "y": 1085, "z": 255, "entidad": null},
+  {"n": 2, "nombre": "Lámpara de mimbre 1", "habitacion": "salon", "tipo": "colgante", "x": 335, "y": 1300, "z": 210, "entidad": null},
+  {"n": 3, "nombre": "Lámpara de mimbre 2", "habitacion": "salon", "tipo": "colgante", "x": 565, "y": 1300, "z": 210, "entidad": null},
+  {"n": 4, "nombre": "Lámpara junto a la TV", "habitacion": "salon", "tipo": "mesa", "x": 355, "y": 1192, "z": 90, "entidad": null},
+  {"n": 5, "nombre": "Colgantes del comedor", "habitacion": "comedor", "tipo": "colgante", "x": 510, "y": 770, "z": 190, "nota": "dos pantallas, en x 478 y 543", "entidad": null},
+  {"n": 6, "nombre": "Lámpara de la consola", "habitacion": "hall", "tipo": "mesa", "x": 862, "y": 790, "z": 115, "entidad": null},
+  {"n": 7, "nombre": "Focos del despacho", "habitacion": "despacho", "tipo": "focos", "x": 720, "y": 1190, "z": 268, "puntos": [[720,1080],[720,1160],[720,1240],[720,1320]], "entidad": null},
+  {"n": 8, "nombre": "Ventilador con luz", "habitacion": "dormitorio_principal", "tipo": "techo", "x": 135, "y": 1100, "z": 255, "entidad": null},
+  {"n": 9, "nombre": "Lámpara mesilla 1", "habitacion": "dormitorio_principal", "tipo": "mesa", "x": 27, "y": 983, "z": 80, "entidad": null},
+  {"n": 10, "nombre": "Lámpara mesilla 2", "habitacion": "dormitorio_principal", "tipo": "mesa", "x": 27, "y": 1221, "z": 80, "entidad": null},
+  {"n": 11, "nombre": "Lámpara globo", "habitacion": "dormitorio_2", "tipo": "colgante", "x": 112, "y": 700, "z": 215, "entidad": null},
+  {"n": 12, "nombre": "Focos del distribuidor", "habitacion": "distribuidor", "tipo": "focos", "x": 273, "y": 767, "z": 268, "entidad": null},
+  {"n": 13, "nombre": "Focos del baño grande", "habitacion": "bano_1", "tipo": "focos", "x": 400, "y": 575, "z": 260, "puntos": [[340,575],[460,575]], "entidad": null},
+  {"n": 14, "nombre": "Aplique del espejo", "habitacion": "bano_1", "tipo": "aplique", "x": 265, "y": 497, "z": 200, "entidad": null},
+  {"n": 15, "nombre": "Focos de la cocina", "habitacion": "cocina", "tipo": "focos", "x": 715, "y": 500, "z": 255, "puntos": [[715,400],[715,500],[715,600],[540,413]], "entidad": null},
+  {"n": 16, "nombre": "Aplique del espejo", "habitacion": "bano_2", "tipo": "aplique", "x": 614, "y": 198, "z": 200, "entidad": null},
+  {"n": 17, "nombre": "Luz del pasillo", "habitacion": "pasillo", "tipo": "techo", "x": 710, "y": 255, "z": 260, "entidad": null},
+  {"n": 18, "nombre": "Lámpara de papel", "habitacion": "tendedero", "tipo": "colgante", "x": 650, "y": 130, "z": 220, "entidad": null}
+ ]
+}
