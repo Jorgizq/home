@@ -21,6 +21,7 @@ def opt(nombre, defecto):
 SOLO = set(opt('--solo', 'noche,luces,sol').split(','))
 MUESTRAS = int(opt('--muestras', '128'))
 RX, RY = map(int, opt('--res', '1600x1200').split('x'))
+MAXIMO = int(opt('--max', '100000'))  # como mucho N imágenes en esta tanda
 AQUI = os.path.dirname(bpy.data.filepath) or os.getcwd()
 SALIDA = os.path.join(AQUI, 'salida'); os.makedirs(SALIDA, exist_ok=True)
 LAT, LON = 40.4011, -3.6975  # Madrid
@@ -108,7 +109,7 @@ indice = dict(resolucion=[RX, RY], azimut_eje_y=AZ_Y, sol=[dict(az=az, el=el, ar
               luces=[dict(n=l['n'], entidad=l.get('entidad'), nombre=l['nombre'], habitacion=l['habitacion'], archivo=f"luz_{l['n']:02d}.jpg") for l in LUCES])
 json.dump(indice, open(os.path.join(SALIDA, 'indice.json'), 'w'), indent=1, ensure_ascii=False)
 
-pendientes = [t for t in trabajos if not os.path.exists(os.path.join(SALIDA, t[0]))]
+pendientes = [t for t in trabajos if not os.path.exists(os.path.join(SALIDA, t[0]))][:MAXIMO]
 print(f'{len(trabajos)} imágenes en total, {len(pendientes)} pendientes')
 t0 = time.time()
 for i, (nombre, kw) in enumerate(pendientes, 1):

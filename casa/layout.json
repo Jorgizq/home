@@ -551,7 +551,10 @@
     ]
    ],
    "alto": 55,
-   "color": "#f2f0ec"
+   "color": "#f2f0ec",
+   "frente": "x+",
+   "cajones": 2,
+   "color2": "#f2f0ec"
   },
   {
    "nombre": "Mesilla 2",
@@ -568,7 +571,10 @@
     ]
    ],
    "alto": 55,
-   "color": "#f2f0ec"
+   "color": "#f2f0ec",
+   "frente": "x+",
+   "cajones": 2,
+   "color2": "#f2f0ec"
   },
   {
    "nombre": "Escalera de la cama",
@@ -604,7 +610,25 @@
    "alto": 236,
    "color": "#efede8",
    "color2": "#b48a5e",
-   "frente": "y+"
+   "frente": "y+",
+   "puertas": 2,
+   "bandas": [
+    {
+     "desde": 0,
+     "hasta": 65,
+     "color": "#b48a5e"
+    },
+    {
+     "desde": 65,
+     "hasta": 175,
+     "color": "#efede8"
+    },
+    {
+     "desde": 175,
+     "hasta": 999,
+     "color": "#b48a5e"
+    }
+   ]
   },
   {
    "nombre": "Armario PAX cristal (dormitorio 2)",
@@ -623,7 +647,26 @@
    "alto": 236,
    "color": "#b48a5e",
    "color2": "#cdd5d2",
-   "frente": "y-"
+   "frente": "y-",
+   "puertas": 2,
+   "bandas": [
+    {
+     "desde": 0,
+     "hasta": 62,
+     "color": "#b48a5e"
+    },
+    {
+     "desde": 62,
+     "hasta": 185,
+     "color": "#cdd5d2",
+     "acabado": "esmerilado"
+    },
+    {
+     "desde": 185,
+     "hasta": 999,
+     "color": "#b48a5e"
+    }
+   ]
   },
   {
    "nombre": "Alfombra",
@@ -796,7 +839,8 @@
     ]
    ],
    "alto": 75,
-   "color": "#6b4226"
+   "color": "#6b4226",
+   "color2": "#efefef"
   },
   {
    "nombre": "Silla 1",
@@ -887,7 +931,8 @@
    "alto": 200,
    "color": "#4a2416",
    "color2": "#4a2416",
-   "frente": "y-"
+   "frente": "y-",
+   "puertas": 2
   },
   {
    "nombre": "Consola",
@@ -923,7 +968,8 @@
    "alto": 260,
    "color": "#4a2416",
    "color2": "#4a2416",
-   "frente": "y+"
+   "frente": "y+",
+   "puertas": 3
   },
   {
    "nombre": "Escritorio",
@@ -940,7 +986,8 @@
     ]
    ],
    "alto": 75,
-   "color": "#c98a4b"
+   "color": "#c98a4b",
+   "color2": "#f2f2f2"
   },
   {
    "nombre": "Silla de escritorio",
@@ -958,7 +1005,8 @@
    ],
    "alto": 50,
    "respaldo": "x+",
-   "color": "#202022"
+   "color": "#202022",
+   "patas": "metal"
   },
   {
    "nombre": "Sofá cama",
@@ -976,7 +1024,7 @@
    ],
    "alto": 70,
    "respaldo": "y+",
-   "color": "#bdb9b2"
+   "color": "#c4c0b8"
   },
   {
    "nombre": "Barra",
@@ -993,7 +1041,8 @@
     ]
    ],
    "alto": 90,
-   "color": "#f4f4f2"
+   "color": "#f4f4f2",
+   "frente": "x-"
   },
   {
    "nombre": "Taburete 1",
@@ -1044,7 +1093,8 @@
     ]
    ],
    "alto": 90,
-   "color": "#f4f4f2"
+   "color": "#f4f4f2",
+   "frente": "x-"
   },
   {
    "nombre": "Nevera retro",
@@ -1167,7 +1217,10 @@
     ]
    ],
    "alto": 100,
-   "color": "#f2f0ec"
+   "color": "#f2f0ec",
+   "frente": "x+",
+   "cajones": 4,
+   "color2": "#f2f0ec"
   },
   {
    "nombre": "Tendedero",
@@ -1272,7 +1325,10 @@
     ]
    ],
    "alto": 95,
-   "color": "#f2f0ec"
+   "color": "#f2f0ec",
+   "frente": "y+",
+   "cajones": 3,
+   "color2": "#f2f0ec"
   },
   {
    "nombre": "Alfombra",
@@ -1532,7 +1588,8 @@
     ]
    ],
    "alto": 90,
-   "color": "#f4f4f2"
+   "color": "#f4f4f2",
+   "frente": "y+"
   }
  ],
  "dudas": [],

@@ -95,6 +95,54 @@ MAT = dict(
     maceta=material('maceta', '#b36a3e', 0.7), metal=material('metal', '#9a9a9a', 0.35),
 )
 
+# ---------- acabados de muebles (procedurales: sin texturas externas) ----------
+import colorsys
+def _rgb(h): h = h.lstrip('#'); return [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+def tipo_acabado(color):
+    """Adivina el acabado por el color: madera (marrones), lacado (blancos y grises claros), o tela."""
+    hh, s, v = colorsys.rgb_to_hsv(*_rgb(color))
+    if 15 / 360 <= hh <= 50 / 360 and s > 0.25 and v > 0.18: return 'madera'
+    if s < 0.12 and v > 0.78: return 'lacado'
+    return 'tela'
+def acabado(tipo, color):
+    nombre = f'{tipo}_{color}'
+    if nombre in _mats: return _mats[nombre]
+    m = bpy.data.materials.new(nombre); m.use_nodes = True; nt = m.node_tree; N = nt.nodes; Lk = nt.links.new
+    b = N['Principled BSDF']; c1 = hexrgb(color)
+    b.inputs['Base Color'].default_value = (*c1, 1)
+    tc = N.new('ShaderNodeTexCoord')
+    if tipo == 'madera':  # veta: ondas deformadas con ruido, entre el color y una versión más oscura
+        mp = N.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (0.6, 14.0, 14.0)
+        wv = N.new('ShaderNodeTexWave'); wv.inputs['Scale'].default_value = 1.2
+        wv.inputs['Distortion'].default_value = 2.5; wv.inputs['Detail'].default_value = 2.0
+        wv.inputs['Detail Scale'].default_value = 0.6
+        cr = N.new('ShaderNodeValToRGB')
+        cr.color_ramp.elements[0].color = (*[x * 0.86 for x in c1], 1); cr.color_ramp.elements[1].color = (*c1, 1)
+        Lk(tc.outputs['Object'], mp.inputs['Vector']); Lk(mp.outputs['Vector'], wv.inputs['Vector'])
+        Lk(wv.outputs['Fac'], cr.inputs['Fac']); Lk(cr.outputs['Color'], b.inputs['Base Color'])
+        b.inputs['Roughness'].default_value = 0.42
+    elif tipo in ('tela', 'alfombra'):  # trama fina en relieve y un poco de brillo de tela
+        nz = N.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 900 if tipo == 'tela' else 300
+        bp = N.new('ShaderNodeBump'); bp.inputs['Strength'].default_value = 0.12 if tipo == 'tela' else 0.45
+        Lk(tc.outputs['Object'], nz.inputs['Vector']); Lk(nz.outputs['Fac'], bp.inputs['Height'])
+        Lk(bp.outputs['Normal'], b.inputs['Normal'])
+        b.inputs['Roughness'].default_value = 0.92; b.inputs['Sheen Weight'].default_value = 0.6
+    elif tipo == 'lacado':
+        b.inputs['Roughness'].default_value = 0.28; b.inputs['Coat Weight'].default_value = 0.25
+    elif tipo == 'ceramica':
+        b.inputs['Roughness'].default_value = 0.06; b.inputs['Coat Weight'].default_value = 0.6
+    elif tipo == 'esmerilado':
+        b.inputs['Roughness'].default_value = 0.45; b.inputs['Transmission Weight'].default_value = 0.85
+    elif tipo == 'metal':
+        b.inputs['Metallic'].default_value = 1.0; b.inputs['Roughness'].default_value = 0.35
+    elif tipo == 'planta':  # hojas con variación de verde
+        nz = N.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 12
+        cr = N.new('ShaderNodeValToRGB')
+        cr.color_ramp.elements[0].color = (*[x * 0.6 for x in c1], 1); cr.color_ramp.elements[1].color = (*[min(1, x * 1.3) for x in c1], 1)
+        Lk(tc.outputs['Object'], nz.inputs['Vector']); Lk(nz.outputs['Fac'], cr.inputs['Fac']); Lk(cr.outputs['Color'], b.inputs['Base Color'])
+        b.inputs['Roughness'].default_value = 0.6; b.inputs['Subsurface Weight'].default_value = 0.1
+    _mats[nombre] = m; return m
+
 # ---------- geometría ----------
 def malla(nombre, tm, mat):
     me = bpy.data.meshes.new(nombre)
@@ -138,77 +186,173 @@ for i, o in enumerate(L['ventanas']):
     if h > d: extruir(s.buffer(0.012, cap_style=2), d, h, f'cristal_{i}', MAT['cristal'])
 
 # ---------- muebles ----------
+import bmesh, random
 def lado(b, cual, fondo):
     """Franja de 'fondo' m pegada al lado indicado de la caja (x-, x+, y-, y+)."""
     x0, y0, x1, y1 = b.bounds
     return {'x-': box(x0, y0, x0 + fondo, y1), 'x+': box(x1 - fondo, y0, x1, y1),
             'y-': box(x0, y0, x1, y0 + fondo), 'y+': box(x0, y1 - fondo, x1, y1)}[cual]
+def trozos(b, eje, n, hueco=0.01):
+    """Parte la caja en n trozos iguales a lo largo de 'x' o 'y', con una junta entre ellos."""
+    x0, y0, x1, y1 = b.bounds; out = []
+    for k in range(n):
+        if eje == 'x': a0 = x0 + (x1 - x0) * k / n; a1 = x0 + (x1 - x0) * (k + 1) / n; q = box(a0 + hueco / 2, y0, a1 - hueco / 2, y1)
+        else: a0 = y0 + (y1 - y0) * k / n; a1 = y0 + (y1 - y0) * (k + 1) / n; q = box(x0, a0 + hueco / 2, x1, a1 - hueco / 2)
+        out.append(q.intersection(b))
+    return out
+def suavizar(ob, ancho=0.012):
+    """Cantos redondeados (bisel) y sombreado suave: quita el aspecto de caja de cartón."""
+    if ob is None: return ob
+    me = ob.data; me.shade_smooth()
+    try: me.set_sharp_from_angle(angle=math.radians(35))
+    except AttributeError: pass
+    md = ob.modifiers.new('bisel', 'BEVEL'); md.width = ancho; md.segments = 2
+    md.limit_method = 'ANGLE'; md.angle_limit = math.radians(35); md.use_clamp_overlap = True
+    md.harden_normals = False
+    return ob
+def pieza(geom, z0, z1, nombre, mat, bisel=0.012):
+    return suavizar(extruir(geom, z0, z1, nombre, mat), min(bisel, (z1 - z0) / 3))
+def esferas(nombre, centro, radio, alto0, alto1, n, mat, semilla=0):
+    """Mata de hojas: varias esferas irregulares (plantas)."""
+    rnd = random.Random(semilla); bm = bmesh.new()
+    for k in range(n):
+        r = radio * rnd.uniform(0.45, 0.8); cx = centro[0] + rnd.uniform(-1, 1) * radio * 0.5
+        cy = centro[1] + rnd.uniform(-1, 1) * radio * 0.5; cz = rnd.uniform(alto0 + r * 0.6, max(alto0 + r * 0.7, alto1 - r))
+        res = bmesh.ops.create_icosphere(bm, subdivisions=2, radius=r)
+        for v in res['verts']: v.co.x += cx; v.co.y += cy; v.co.z += cz
+    me = bpy.data.meshes.new(nombre); bm.to_mesh(me); bm.free(); me.shade_smooth()
+    ob = bpy.data.objects.new(nombre, me); sc.collection.objects.link(ob); ob.data.materials.append(mat); return ob
+def mat_de(mb, clave='color', defecto='#eeeeee', acab=None):
+    c = mb.get(clave, mb.get('color', defecto))
+    return acabado(acab or mb.get('acabado' if clave == 'color' else 'acabado2') or tipo_acabado(c), c)
+def eje_largo(b):
+    x0, y0, x1, y1 = b.bounds; return 'x' if x1 - x0 >= y1 - y0 else 'y'
+MADERA_PATAS = acabado('madera', '#8a6a48')
 def mueble(i, mb):
     (x0, y0), (x1, y1) = mb['caja']; b = box(x0 * M, y0 * M, x1 * M, y1 * M)
     b = b.difference(muros2d.buffer(0.005)).buffer(-0.004, join_style=2)
     if b.is_empty: return
     t = mb.get('tipo', 'caja'); alto = min(mb.get('alto', 80) * M, CORTE - 0.02)
-    col = material('m_' + mb.get('color', '#eeeeee'), mb.get('color', '#eeeeee'), 0.55)
-    col2 = material('m_' + mb.get('color2', mb.get('color', '#eeeeee')), mb.get('color2', mb.get('color', '#eeeeee')), 0.5)
-    n = f'mueble_{i}'
+    col = mat_de(mb); col2 = mat_de(mb, 'color2'); n = f'mueble_{i}'
     if t == 'caja':
-        extruir(b, 0, alto, n, col)
+        f = mb.get('frente'); nc = mb.get('cajones', 0)
+        if f and nc:  # cuerpo + frentes de cajón con junta
+            pieza(b.difference(lado(b, f, 0.02)), 0, alto, n, col)
+            for k in range(nc):
+                za = 0.03 + (alto - 0.03) * k / nc; zb = 0.03 + (alto - 0.03) * (k + 1) / nc
+                pieza(lado(b, f, 0.02), za + 0.003, zb - 0.003, n + f'_cajon{k}', col2, 0.004)
+        else:
+            pieza(b, 0, alto, n, col)
     elif t == 'alfombra':
-        extruir(b, 0, 0.012, n, col)
+        pieza(b, 0, 0.015, n, acabado('alfombra', mb.get('color', '#cccccc')), 0.006)
     elif t in ('pantalla', 'flotante'):  # pieza que no toca el suelo (tele, tabla, microondas...)
-        extruir(b, mb.get('desde', 50) * M, alto, n, col)
-    elif t == 'cama':  # somier + colchón + cabecero
+        pieza(b, mb.get('desde', 50) * M, alto, n, col, 0.005)
+    elif t == 'cama':
         cab = mb.get('cabecero', 'x-'); resto = b.difference(lado(b, cab, 0.08))
-        extruir(resto, 0, alto * 0.55, n + '_base', col2)
-        extruir(resto.buffer(-0.01, join_style=2), alto * 0.55, alto, n + '_colchon', col)
+        tela_blanca = acabado('tela', mb.get('color', '#f4f2ee'))
         if mb.get('barandilla'):  # cama Montessori: marco de madera con barandilla y hueco para subir
+            madera = acabado('madera', mb.get('color2', '#d9bf98'))
+            pieza(b, 0, 0.08, n + '_marco', madera, 0.01)
+            pieza(b.buffer(-0.04, join_style=2), 0.08, alto, n + '_colchon', tela_blanca, 0.03)
             aro = b.difference(b.buffer(-0.035, join_style=2))
             x0b, y0b, x1b, y1b = b.bounds; lar = max(x1b - x0b, y1b - y0b)
             hueco = b.centroid.buffer(lar * 0.22, cap_style=3).intersection(lado(b, 'x+', 0.05))
-            extruir(aro.difference(hueco), 0, alto + 0.2, n + '_barandilla', col2)
-        else:
-            extruir(lado(b, cab, 0.08), 0, min(alto + 0.55, CORTE - 0.02), n + '_cabecero', col2)
-    elif t == 'sofa':  # asiento + respaldo + brazos
-        r = mb.get('respaldo', 'x+'); x0b, y0b, x1b, y1b = b.bounds
+            pieza(aro.difference(hueco), 0.08, alto + 0.2, n + '_barandilla', madera, 0.008)
+        else:  # canapé tapizado + colchón + nórdico + almohadas + cabecero tapizado
+            tapiz = acabado('tela', mb.get('color2', '#b9b2a8'))
+            pieza(resto, 0, alto * 0.5, n + '_base', tapiz, 0.02)
+            pieza(resto.buffer(-0.01, join_style=2), alto * 0.5, alto, n + '_colchon', tela_blanca, 0.04)
+            pies = {'x-': 'x+', 'x+': 'x-', 'y-': 'y+', 'y+': 'y-'}[cab]
+            x0b, y0b, x1b, y1b = resto.bounds; largo = (x1b - x0b) if cab[0] == 'x' else (y1b - y0b)
+            pieza(lado(resto, pies, largo * 0.72).buffer(0.025, join_style=2), alto - 0.01, alto + 0.05, n + '_nordico',
+                  acabado('tela', '#f7f5f1'), 0.025)
+            almo = lado(resto, cab, 0.4).buffer(-0.05, join_style=2)
+            ancho = (y1b - y0b) if cab[0] == 'x' else (x1b - x0b)
+            for k, q in enumerate(trozos(almo, 'y' if cab[0] == 'x' else 'x', 2 if ancho > 1.2 else 1, 0.06)):
+                pieza(q, alto, alto + 0.13, n + f'_almohada{k}', tela_blanca, 0.05)
+            pieza(lado(b, cab, 0.08), 0, min(alto + 0.6, CORTE - 0.02), n + '_cabecero', tapiz, 0.03)
+    elif t == 'sofa':  # patas + base + cojines de asiento + respaldo con cojines + brazos
+        r = mb.get('respaldo', 'x+'); tela = acabado('tela', mb.get('color', '#777777'))
         brazos = ('y-', 'y+') if r[0] == 'x' else ('x-', 'x+')
-        asiento = b.difference(lado(b, r, 0.2))
-        for br in brazos: asiento = asiento.difference(lado(b, br, 0.14))
-        extruir(asiento, 0.1, alto * 0.5, n + '_asiento', col)
-        extruir(lado(b, r, 0.2), 0.1, alto, n + '_respaldo', col)
-        for j, br in enumerate(brazos): extruir(lado(b, br, 0.14), 0.1, alto * 0.72, n + f'_brazo{j}', col)
-        extruir(b.buffer(-0.03, join_style=2), 0, 0.1, n + '_patas', material('patas_madera', '#8a6a48', 0.5))
-    elif t == 'mesa':  # tablero + 4 patas
-        extruir(b, alto - 0.03, alto, n + '_tablero', col)
-        x0b, y0b, x1b, y1b = b.bounds
-        for j, (px, py) in enumerate([(x0b, y0b), (x1b - .04, y0b), (x0b, y1b - .04), (x1b - .04, y1b - .04)]):
-            extruir(box(px, py, px + .04, py + .04), 0, alto - 0.03, n + f'_pata{j}', col)
-    elif t == 'silla':
-        r = mb.get('respaldo', 'y-')
-        extruir(b, alto - 0.04, alto, n + '_asiento', col)
-        extruir(lado(b, r, 0.04), alto, alto + 0.4, n + '_respaldo', col)
-        extruir(b.buffer(-0.12, join_style=2) if b.area > 0.03 else b, 0, alto - 0.04, n + '_pie', MAT['metal'])
-    elif t == 'armario':  # cuerpo + frente de otro color
+        x0b, y0b, x1b, y1b = b.bounds; prof = (x1b - x0b) if r[0] == 'x' else (y1b - y0b)
+        brazo = 0.14 if prof > 0.6 else 0.08
+        interior = b
+        for br in brazos: interior = interior.difference(lado(b, br, brazo))
+        respaldo = lado(b, r, 0.18).intersection(b)
+        asiento = interior.difference(lado(b, r, 0.18))
+        largo = (y1b - y0b) if r[0] == 'x' else (x1b - x0b); nc = max(1, round((largo - 2 * brazo) / 0.7))
+        ejeL = 'y' if r[0] == 'x' else 'x'
+        for k, q in enumerate([b.buffer(-0.04, join_style=2)]):
+            x0q, y0q, x1q, y1q = q.bounds
+            for j, (px, py) in enumerate([(x0q, y0q), (x1q - .04, y0q), (x0q, y1q - .04), (x1q - .04, y1q - .04)]):
+                extruir(box(px, py, px + .04, py + .04), 0, 0.09, n + f'_pata{j}', MADERA_PATAS)
+        pieza(b, 0.09, 0.28, n + '_base', tela, 0.02)
+        for k, q in enumerate(trozos(asiento, ejeL, nc, 0.012)):
+            pieza(q, 0.28, alto * 0.53, n + f'_cojin{k}', tela, 0.04)
+        pieza(respaldo, 0.28, alto, n + '_respaldo', tela, 0.04)
+        delante = lado(b, r, 0.32).intersection(interior).difference(respaldo)
+        for k, q in enumerate(trozos(delante, ejeL, nc, 0.012)):
+            pieza(q, alto * 0.53, alto * 0.95, n + f'_cojin_resp{k}', tela, 0.05)
+        for j, br in enumerate(brazos): pieza(lado(b, br, brazo), 0.28, alto * 0.72, n + f'_brazo{j}', tela, 0.04)
+    elif t == 'mesa':  # tablero + 4 patas (color2 = patas)
+        pieza(b, alto - 0.03, alto, n + '_tablero', col, 0.008)
+        x0b, y0b, x1b, y1b = b.bounds; e = 0.045
+        for j, (px, py) in enumerate([(x0b + .02, y0b + .02), (x1b - .02 - e, y0b + .02), (x0b + .02, y1b - .02 - e), (x1b - .02 - e, y1b - .02 - e)]):
+            pieza(box(px, py, px + e, py + e), 0, alto - 0.03, n + f'_pata{j}', col2, 0.008)
+    elif t == 'silla':  # carcasa (asiento + respaldo) con patas de madera
+        r = mb.get('respaldo', 'y-'); carcasa = acabado('lacado', mb.get('color', '#dcd9d3'))
+        pieza(b, alto - 0.03, alto + 0.01, n + '_asiento', carcasa, 0.012)
+        pieza(lado(b, r, 0.035), alto, alto + 0.38, n + '_respaldo', carcasa, 0.012)
+        x0b, y0b, x1b, y1b = b.bounds; e = 0.025
+        for j, (px, py) in enumerate([(x0b + .04, y0b + .04), (x1b - .04 - e, y0b + .04), (x0b + .04, y1b - .04 - e), (x1b - .04 - e, y1b - .04 - e)]):
+            extruir(box(px, py, px + e, py + e), 0, alto - 0.03, n + f'_pata{j}',
+                    MADERA_PATAS if mb.get('patas', 'madera') == 'madera' else acabado('metal', '#2a2a2a'))
+    elif t == 'armario':  # cuerpo + puertas con junta; 'bandas' = franjas del frente por altura (PAX)
         f = mb.get('frente', 'y+')
-        extruir(b.difference(lado(b, f, 0.02)), 0, alto, n, col)
-        extruir(lado(b, f, 0.02), 0.05, alto, n + '_frente', col2)
-    elif t == 'encimera':  # módulos + encimera
-        extruir(b.buffer(-0.03, join_style=2), 0, alto - 0.04, n, col)
-        extruir(b, alto - 0.04, alto, n + '_encimera', material('encimera', '#fafafa', 0.25))
+        pieza(b.difference(lado(b, f, 0.02)), 0, alto, n, col, 0.006)
+        frente = lado(b, f, 0.02); ejeF = 'x' if f[0] == 'y' else 'y'
+        x0b, y0b, x1b, y1b = b.bounds; largo = (x1b - x0b) if ejeF == 'x' else (y1b - y0b)
+        npuertas = mb.get('puertas') or max(1, round(largo / 0.5))
+        bandas = mb.get('bandas') or [dict(desde=0, hasta=999, color=mb.get('color2', mb.get('color')))]
+        for k, q in enumerate(trozos(frente, ejeF, npuertas, 0.006)):
+            for j, bd in enumerate(bandas):
+                za = max(0.05, bd['desde'] * M) + 0.002; zb = min(alto, bd['hasta'] * M) - 0.002
+                if zb > za:
+                    pieza(q, za, zb, n + f'_puerta{k}_{j}', acabado(bd.get('acabado') or tipo_acabado(bd['color']), bd['color']), 0.004)
+    elif t == 'encimera':  # módulos con puertas + zócalo + encimera
+        f = mb.get('frente'); blanco = acabado('lacado', mb.get('color', '#f4f4f2'))
+        pieza(b.buffer(-0.05, join_style=2), 0, 0.1, n + '_zocalo', acabado('lacado', '#b9b9b9'), 0.003)
+        cuerpo = b.buffer(-0.02, join_style=2)
+        if f:
+            pieza(cuerpo.difference(lado(cuerpo, f, 0.02)), 0.1, alto - 0.04, n, blanco, 0.004)
+            ejeF = 'x' if f[0] == 'y' else 'y'; x0b, y0b, x1b, y1b = b.bounds
+            largo = (x1b - x0b) if ejeF == 'x' else (y1b - y0b)
+            for k, q in enumerate(trozos(lado(cuerpo, f, 0.02), ejeF, max(1, round(largo / 0.6)), 0.005)):
+                pieza(q, 0.1, alto - 0.045, n + f'_puerta{k}', blanco, 0.004)
+        else:
+            pieza(cuerpo, 0.1, alto - 0.04, n, blanco, 0.004)
+        pieza(b, alto - 0.04, alto, n + '_encimera', acabado('lacado', '#fafafa'), 0.004)
     elif t == 'banera':
-        extruir(b.difference(b.buffer(-0.07, join_style=2)), 0, alto, n, col)
-        extruir(b.buffer(-0.07, join_style=2), 0, 0.18, n + '_fondo', col)
+        cer = acabado('ceramica', mb.get('color', '#f7f7f5'))
+        pieza(b.difference(b.buffer(-0.07, join_style=2)), 0, alto, n, cer, 0.02)
+        pieza(b.buffer(-0.07, join_style=2), 0, 0.18, n + '_fondo', cer, 0.02)
     elif t == 'inodoro':
-        extruir(b.centroid.buffer(min(b.bounds[2] - b.bounds[0], b.bounds[3] - b.bounds[1]) / 2 * 0.95), 0, alto, n, col)
+        cer = acabado('ceramica', mb.get('color', '#f7f7f5'))
+        rr = min(b.bounds[2] - b.bounds[0], b.bounds[3] - b.bounds[1]) / 2 * 0.95
+        pieza(b.centroid.buffer(rr * 0.7), 0, alto * 0.75, n + '_pie', cer, 0.01)
+        pieza(b.centroid.buffer(rr), alto * 0.75, alto, n, cer, 0.015)
     elif t == 'planta':
-        extruir(b.centroid.buffer((b.bounds[2] - b.bounds[0]) / 2 * 0.7), 0, alto * 0.35, n + '_maceta', MAT['maceta'])
-        extruir(b.centroid.buffer((b.bounds[2] - b.bounds[0]) / 2), alto * 0.35, alto, n + '_hojas', MAT['planta'])
+        rr = (b.bounds[2] - b.bounds[0]) / 2
+        pieza(b.centroid.buffer(rr * 0.6), 0, alto * 0.3, n + '_maceta', MAT['maceta'], 0.01)
+        esferas(n + '_hojas', (b.centroid.x, b.centroid.y), rr * 1.1, alto * 0.3, alto, 9, acabado('planta', mb.get('color', '#4f6f34')), i)
     elif t == 'tendedero':
-        extruir(b.difference(b.buffer(-0.02, join_style=2)), alto - 0.02, alto, n, MAT['metal'])
+        met = acabado('metal', mb.get('color', '#c8c8c8'))
+        extruir(b.difference(b.buffer(-0.02, join_style=2)), alto - 0.02, alto, n, met)
         for j in range(1, 6):
             x0b, y0b, x1b, y1b = b.bounds; xx = x0b + (x1b - x0b) * j / 6
-            extruir(box(xx - 0.004, y0b, xx + 0.004, y1b), alto - 0.02, alto, n + f'_v{j}', MAT['metal'])
+            extruir(box(xx - 0.004, y0b, xx + 0.004, y1b), alto - 0.02, alto, n + f'_v{j}', met)
     else:
-        extruir(b, 0, alto, n, col)
+        pieza(b, 0, alto, n, col)
 for i, mb in enumerate(L.get('muebles', [])):
     mueble(i, mb)
 
