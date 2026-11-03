@@ -21,6 +21,7 @@ ap.add_argument('--corte', type=float, default=1.40)
 ap.add_argument('--res', default='1600x1200')
 ap.add_argument('--sol', default='200,40', help='azimut,elevación del sol (grados)')
 ap.add_argument('--inclinacion', type=float, default=None, help='grados desde la vertical (0 = planta); por defecto el de layout.json')
+ap.add_argument('--sin-render', action='store_true', help='solo guarda el .blend')
 ap.add_argument('--noche', action='store_true', help='sin sol: solo luna y las luces elegidas')
 ap.add_argument('--luces', default='ninguna', help="'todas', 'ninguna' o lista separada por comas de números o entidades de luces.json")
 ap.add_argument('--techo', action='store_true', help='techo y muros completos invisibles a la cámara (siempre en --noche)')
@@ -214,14 +215,18 @@ for i, mb in enumerate(L.get('muebles', [])):
 # ---------- techo y parte alta de los muros: invisibles a la cámara, pero frenan la luz ----------
 # (si no, la luz de una habitación se escapa por encima de los muros cortados a las de al lado)
 TECHO = L.get('altura_techo', 285) * M
+def ocultar(ob):
+    ob.visible_camera = False
+    if not a.noche:  # de día: frena el sol directo (sombra) pero deja entrar la luz del cielo rebotada
+        ob.visible_diffuse = False; ob.visible_glossy = False
 if a.techo or a.noche:
     cortes_alto = sorted({CORTE, TECHO} | {z for _, d, h in huecos for z in (d, h) if CORTE < z < TECHO})
     for i, (z0, z1) in enumerate(zip(cortes_alto[:-1], cortes_alto[1:])):
         quitar = unary_union([g for g, d, h in huecos if d <= z0 + 1e-6 and h >= z1 - 1e-6] or [Polygon()])
         ob = extruir(muros2d.difference(quitar), z0, z1, f'muro_alto_{i}', MAT['muro'])
-        if ob: ob.visible_camera = False
+        if ob: ocultar(ob)
     ob = extruir(huella, TECHO, TECHO + 0.05, 'techo', MAT['muro'])
-    if ob: ob.visible_camera = False
+    if ob: ocultar(ob)
 
 # ---------- luces de la casa (casa/luces.json) ----------
 import os
@@ -252,7 +257,7 @@ ang = math.radians(s_az - azY)  # ángulo en el plano, horario desde +Y
 hacia_sol = Vector((math.sin(ang) * math.cos(math.radians(s_el)), math.cos(ang) * math.cos(math.radians(s_el)), math.sin(math.radians(s_el))))
 sun = bpy.data.lights.new('sol', 'SUN'); sun.energy = 3.2; sun.angle = math.radians(1.5)
 if a.noche:  # luz de luna: débil y azulada
-    sun.energy = 0.12; sun.color = (0.62, 0.72, 1.0)
+    sun.energy = 0.4; sun.color = (0.62, 0.72, 1.0)
 so = bpy.data.objects.new('sol', sun); sc.collection.objects.link(so)
 so.rotation_euler = hacia_sol.to_track_quat('Z', 'Y').to_euler()
 w = bpy.data.worlds.new('cielo'); sc.world = w; w.use_nodes = True
@@ -260,7 +265,7 @@ w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.75, 0.82, 0.9
 w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.45
 if a.noche:
     w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.05, 0.07, 0.16, 1)
-    w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.12
+    w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.3
 
 # ---------- cámara de diorama: 30° desde la vertical, girada 25° ----------
 minx, miny, maxx, maxy = huella.bounds
@@ -288,6 +293,11 @@ sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = a.mue
 sc.cycles.use_denoising = True; sc.render.film_transparent = False
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 sc.render.filepath = a.salida; sc.render.image_settings.file_format = 'PNG'
-if a.blend: bpy.ops.wm.save_as_mainfile(filepath=a.blend)
-bpy.ops.render.render(write_still=True)
-print('render ->', a.salida)
+if a.blend:
+    sc['azimut_eje_y'] = azY
+    t_ = bpy.data.texts.new('luces.json'); t_.write(json.dumps(LZ, ensure_ascii=False))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(a.blend), compress=True)
+    print('blend ->', a.blend)
+if not a.sin_render:
+    bpy.ops.render.render(write_still=True)
+    print('render ->', a.salida)
