@@ -41,7 +41,8 @@
     ]
    ],
    "suelo": "parquet",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Dormitorio principal"
   },
   "dormitorio_2": {
    "nombre": "Segundo dormitorio",
@@ -64,7 +65,8 @@
     ]
    ],
    "suelo": "parquet",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Segundo dormitorio"
   },
   "distribuidor": {
    "nombre": "Distribuidor",
@@ -87,7 +89,8 @@
     ]
    ],
    "suelo": "parquet",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Distribuidor"
   },
   "salon": {
    "nombre": "Salón",
@@ -133,7 +136,8 @@
      "y_desde": 1212,
      "paredes": "madera_oscura"
     }
-   ]
+   ],
+   "area_ha": "Salón"
   },
   "comedor": {
    "nombre": "Comedor",
@@ -156,7 +160,8 @@
     ]
    ],
    "suelo": "parquet",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Comedor"
   },
   "hall": {
    "nombre": "Hall",
@@ -179,7 +184,8 @@
     ]
    ],
    "suelo": "parquet",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Hall"
   },
   "despacho": {
    "nombre": "Despacho",
@@ -202,7 +208,8 @@
     ]
    ],
    "suelo": "parquet",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Despacho"
   },
   "bano_1": {
    "nombre": "Baño (bañera)",
@@ -225,7 +232,8 @@
     ]
    ],
    "suelo": "baldosa_beige",
-   "paredes": "azulejo_beige"
+   "paredes": "azulejo_beige",
+   "area_ha": "Baño grande"
   },
   "cocina": {
    "nombre": "Cocina",
@@ -264,7 +272,8 @@
     ]
    ],
    "suelo": "barro",
-   "paredes": "azulejo_cocina"
+   "paredes": "azulejo_cocina",
+   "area_ha": "Cocina"
   },
   "pasillo": {
    "nombre": "Pasillo",
@@ -287,7 +296,8 @@
     ]
    ],
    "suelo": "barro",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Pasillo"
   },
   "bano_2": {
    "nombre": "Baño 2",
@@ -318,7 +328,8 @@
     ]
    ],
    "suelo": "baldosa_beige",
-   "paredes": "azulejo_beige"
+   "paredes": "azulejo_beige",
+   "area_ha": "Baño pequeño"
   },
   "tendedero": {
    "nombre": "Tendedero",
@@ -341,7 +352,8 @@
     ]
    ],
    "suelo": "barro",
-   "paredes": "crema"
+   "paredes": "crema",
+   "area_ha": "Tendedero"
   }
  },
  "aberturas": [
