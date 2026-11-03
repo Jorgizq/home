@@ -1,5 +1,5 @@
 {
- "nota": "Puntos de luz. x,y en cm como layout.json; z = altura. 'entidad' = Home Assistant (null = no está en HA). 'seguro': false = por confirmar.",
+ "nota": "Puntos de luz. x,y en cm como layout.json; z = altura. 'entidad' = Home Assistant (null = no está en HA). 'seguro': false = por confirmar. Las que no tienen entidad van con interruptor normal.",
  "luces": [
   {
    "n": 1,
@@ -252,7 +252,8 @@
    "x": 470,
    "y": 1085,
    "z": 255,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 26,
@@ -262,7 +263,8 @@
    "x": 335,
    "y": 1300,
    "z": 210,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 27,
@@ -272,7 +274,8 @@
    "x": 565,
    "y": 1300,
    "z": 210,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 28,
@@ -282,7 +285,8 @@
    "x": 135,
    "y": 1090,
    "z": 255,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 29,
@@ -302,7 +306,8 @@
      460,
      575
     ]
-   ]
+   ],
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 30,
@@ -312,7 +317,8 @@
    "x": 265,
    "y": 497,
    "z": 200,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 31,
@@ -340,7 +346,8 @@
      540,
      413
     ]
-   ]
+   ],
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 32,
@@ -350,7 +357,8 @@
    "x": 614,
    "y": 198,
    "z": 200,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   },
   {
    "n": 33,
@@ -360,7 +368,8 @@
    "x": 650,
    "y": 130,
    "z": 220,
-   "entidad": null
+   "entidad": null,
+   "control": "interruptor (sin Home Assistant): apagada en el diorama; render preparado por si se domotiza"
   }
  ]
 }
