@@ -151,7 +151,7 @@ def mueble(i, mb):
         extruir(b, 0, alto, n, col)
     elif t == 'alfombra':
         extruir(b, 0, 0.012, n, col)
-    elif t == 'pantalla':
+    elif t in ('pantalla', 'flotante'):  # pieza que no toca el suelo (tele, tabla, microondas...)
         extruir(b, mb.get('desde', 50) * M, alto, n, col)
     elif t == 'cama':  # somier + colchón + cabecero
         cab = mb.get('cabecero', 'x-'); resto = b.difference(lado(b, cab, 0.08))

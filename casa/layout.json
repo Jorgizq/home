@@ -955,40 +955,6 @@
    "color": "#bdb9b2"
   },
   {
-   "nombre": "Encimera con fogones",
-   "habitacion": "cocina",
-   "tipo": "encimera",
-   "caja": [
-    [
-     520,
-     345
-    ],
-    [
-     665,
-     405
-    ]
-   ],
-   "alto": 90,
-   "color": "#f4f4f2"
-  },
-  {
-   "nombre": "Lavadora",
-   "habitacion": "cocina",
-   "tipo": "caja",
-   "caja": [
-    [
-     455,
-     348
-    ],
-    [
-     515,
-     408
-    ]
-   ],
-   "alto": 85,
-   "color": "#f4f4f2"
-  },
-  {
    "nombre": "Barra",
    "habitacion": "cocina",
    "tipo": "encimera",
@@ -1421,6 +1387,128 @@
    ],
    "alto": 55,
    "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Lavadora",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     452,
+     346
+    ],
+    [
+     512,
+     408
+    ]
+   ],
+   "alto": 85,
+   "color": "#f4f4f2"
+  },
+  {
+   "nombre": "Lavavajillas",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     452,
+     414
+    ],
+    [
+     512,
+     478
+    ]
+   ],
+   "alto": 85,
+   "color": "#f4f4f2"
+  },
+  {
+   "nombre": "Tabla bajo la ventana",
+   "habitacion": "cocina",
+   "tipo": "flotante",
+   "caja": [
+    [
+     450,
+     344
+    ],
+    [
+     516,
+     481
+    ]
+   ],
+   "desde": 86,
+   "alto": 90,
+   "color": "#f6f6f4"
+  },
+  {
+   "nombre": "Microondas",
+   "habitacion": "cocina",
+   "tipo": "flotante",
+   "caja": [
+    [
+     456,
+     352
+    ],
+    [
+     504,
+     402
+    ]
+   ],
+   "desde": 90,
+   "alto": 118,
+   "color": "#d9d9d9"
+  },
+  {
+   "nombre": "Horno de sobremesa",
+   "habitacion": "cocina",
+   "tipo": "flotante",
+   "caja": [
+    [
+     456,
+     420
+    ],
+    [
+     504,
+     472
+    ]
+   ],
+   "desde": 90,
+   "alto": 120,
+   "color": "#2b2b2d"
+  },
+  {
+   "nombre": "Cubo de basura",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     518,
+     350
+    ],
+    [
+     552,
+     384
+    ]
+   ],
+   "alto": 60,
+   "color": "#8d8f92"
+  },
+  {
+   "nombre": "Encimera con fogones",
+   "habitacion": "cocina",
+   "tipo": "encimera",
+   "caja": [
+    [
+     558,
+     345
+    ],
+    [
+     665,
+     405
+    ]
+   ],
+   "alto": 90,
+   "color": "#f4f4f2"
   }
  ],
  "dudas": [],
@@ -1507,12 +1595,13 @@
    "habitacion": "cocina",
    "x": 450,
    "y": [
-    385,
-    470
+    345,
+    480
    ],
-   "desde": 100,
+   "desde": 95,
    "hasta": 225,
-   "da_a": "patio (este)"
+   "da_a": "patio (este)",
+   "nota": "ocupa toda la pared"
   },
   {
    "habitacion": "bano_2",
