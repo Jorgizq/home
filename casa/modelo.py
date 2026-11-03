@@ -20,6 +20,7 @@ ap.add_argument('--blend'); ap.add_argument('--muestras', type=int, default=48)
 ap.add_argument('--corte', type=float, default=1.40)
 ap.add_argument('--res', default='1600x1200')
 ap.add_argument('--sol', default='200,40', help='azimut,elevación del sol (grados)')
+ap.add_argument('--inclinacion', type=float, default=None, help='grados desde la vertical (0 = planta); por defecto el de layout.json')
 ap.add_argument('--camara', type=float, default=None,
                 help='lado de la cámara: ángulo en el plano (0 = oeste, 90 = sur); por defecto el de layout.json')
 a = ap.parse_args()
@@ -156,7 +157,13 @@ def mueble(i, mb):
         cab = mb.get('cabecero', 'x-'); resto = b.difference(lado(b, cab, 0.08))
         extruir(resto, 0, alto * 0.55, n + '_base', col2)
         extruir(resto.buffer(-0.01, join_style=2), alto * 0.55, alto, n + '_colchon', col)
-        extruir(lado(b, cab, 0.08), 0, min(alto + 0.55, CORTE - 0.02), n + '_cabecero', col2)
+        if mb.get('barandilla'):  # cama Montessori: marco de madera con barandilla y hueco para subir
+            aro = b.difference(b.buffer(-0.035, join_style=2))
+            x0b, y0b, x1b, y1b = b.bounds; lar = max(x1b - x0b, y1b - y0b)
+            hueco = b.centroid.buffer(lar * 0.22, cap_style=3).intersection(lado(b, 'x+', 0.05))
+            extruir(aro.difference(hueco), 0, alto + 0.2, n + '_barandilla', col2)
+        else:
+            extruir(lado(b, cab, 0.08), 0, min(alto + 0.55, CORTE - 0.02), n + '_cabecero', col2)
     elif t == 'sofa':  # asiento + respaldo + brazos
         r = mb.get('respaldo', 'x+'); x0b, y0b, x1b, y1b = b.bounds
         brazos = ('y-', 'y+') if r[0] == 'x' else ('x-', 'x+')
@@ -216,7 +223,7 @@ w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.45
 # ---------- cámara de diorama: 30° desde la vertical, girada 25° ----------
 minx, miny, maxx, maxy = huella.bounds
 c = Vector(((minx + maxx) / 2, (miny + maxy) / 2, 0.3))
-t = math.radians(L.get('camara', {}).get('inclinacion_desde_vertical', 30))
+t = math.radians(a.inclinacion if a.inclinacion is not None else L.get('camara', {}).get('inclinacion_desde_vertical', 30))
 r = math.radians(a.camara if a.camara is not None else L.get('camara', {}).get('lado', -25))
 hdir = Vector((math.cos(r), math.sin(r), 0))  # -25 = desde el oeste; 65 = desde el sur (ventanal abajo)
 cam = bpy.data.cameras.new('cam'); cam.lens = 85; co = bpy.data.objects.new('cam', cam); sc.collection.objects.link(co)

@@ -1331,8 +1331,9 @@
    ],
    "alto": 32,
    "cabecero": "y-",
-   "color": "#f1ece4",
-   "color2": "#d9bf98"
+   "color": "#efe9df",
+   "color2": "#d9bf98",
+   "barandilla": true
   },
   {
    "nombre": "Estantería de cubos",
@@ -1357,11 +1358,11 @@
    "tipo": "caja",
    "caja": [
     [
-     100,
+     122,
      568
     ],
     [
-     185,
+     202,
      616
     ]
    ],
