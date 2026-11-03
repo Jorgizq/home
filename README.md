@@ -8,7 +8,9 @@ Diorama de la casa para Home Assistant, siguiendo la guía de
 2. ✅ Plano (borrador 2): `casa/layout.json` → `docs/escaneo/plano.png`. Fachada del salón al sur.
 3. ✅ Orientación real (OpenStreetMap): fachada del salón a 183,8° (sur, 4° al oeste).
 4. ✅ Modelo en Blender y primer render en gris: `docs/render/prueba_1.png`.
-5. ⬜ Muebles a partir de fotos, texturas y luces.
+5. ✅ Fotos por habitación (`fotos/`) y primera versión de muebles, suelos y acabados: `docs/render/prueba_2.png`.
+6. ⬜ Luces de Home Assistant (grupos y una imagen por luz).
+7. ⬜ Sol: una imagen por posición y día/noche.
 
 ## Datos del escaneo
 - Vivienda de ~9 × 14 m; techo a ~2,85 m.

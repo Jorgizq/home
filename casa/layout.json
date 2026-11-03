@@ -39,7 +39,9 @@
      5,
      1277
     ]
-   ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema"
   },
   "dormitorio_2": {
    "nombre": "Segundo dormitorio",
@@ -60,7 +62,9 @@
      10,
      860
     ]
-   ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema"
   },
   "distribuidor": {
    "nombre": "Distribuidor",
@@ -81,7 +85,9 @@
      222,
      872
     ]
-   ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema"
   },
   "salon": {
    "nombre": "Salón",
@@ -118,6 +124,15 @@
      330,
      1212
     ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema",
+   "zonas": [
+    {
+     "nombre": "antigua terraza",
+     "y_desde": 1212,
+     "paredes": "madera_oscura"
+    }
    ]
   },
   "comedor": {
@@ -139,7 +154,9 @@
      330,
      945
     ]
-   ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema"
   },
   "hall": {
    "nombre": "Hall",
@@ -160,7 +177,9 @@
      675,
      936
     ]
-   ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema"
   },
   "despacho": {
    "nombre": "Despacho",
@@ -181,7 +200,9 @@
      630,
      1362
     ]
-   ]
+   ],
+   "suelo": "parquet",
+   "paredes": "crema"
   },
   "bano_1": {
    "nombre": "Baño (bañera)",
@@ -202,7 +223,9 @@
      232,
      660
     ]
-   ]
+   ],
+   "suelo": "baldosa_beige",
+   "paredes": "azulejo_beige"
   },
   "cocina": {
    "nombre": "Cocina",
@@ -239,7 +262,9 @@
      450,
      482
     ]
-   ]
+   ],
+   "suelo": "barro",
+   "paredes": "azulejo_cocina"
   },
   "pasillo": {
    "nombre": "Pasillo",
@@ -260,7 +285,9 @@
      662,
      325
     ]
-   ]
+   ],
+   "suelo": "barro",
+   "paredes": "crema"
   },
   "bano_2": {
    "nombre": "Baño 2",
@@ -289,7 +316,9 @@
      466,
      278
     ]
-   ]
+   ],
+   "suelo": "baldosa_beige",
+   "paredes": "azulejo_beige"
   },
   "tendedero": {
    "nombre": "Tendedero",
@@ -310,7 +339,9 @@
      480,
      180
     ]
-   ]
+   ],
+   "suelo": "barro",
+   "paredes": "crema"
   }
  },
  "aberturas": [
@@ -463,23 +494,79 @@
  ],
  "muebles": [
   {
-   "nombre": "Armario IKEA (dormitorio 2)",
-   "habitacion": "dormitorio_2",
+   "nombre": "Cama",
+   "habitacion": "dormitorio_principal",
+   "tipo": "cama",
    "caja": [
     [
-     10,
-     780
+     15,
+     1010
     ],
     [
-     215,
-     858
+     225,
+     1195
     ]
    ],
-   "alto": 236
+   "alto": 55,
+   "cabecero": "x-",
+   "color": "#f4f2ee",
+   "color2": "#b9b2a8"
   },
   {
-   "nombre": "Armario IKEA (dormitorio principal)",
+   "nombre": "Mesilla 1",
    "habitacion": "dormitorio_principal",
+   "tipo": "caja",
+   "caja": [
+    [
+     5,
+     962
+    ],
+    [
+     48,
+     1004
+    ]
+   ],
+   "alto": 55,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Mesilla 2",
+   "habitacion": "dormitorio_principal",
+   "tipo": "caja",
+   "caja": [
+    [
+     5,
+     1200
+    ],
+    [
+     48,
+     1242
+    ]
+   ],
+   "alto": 55,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Escalera de la cama",
+   "habitacion": "dormitorio_principal",
+   "tipo": "caja",
+   "caja": [
+    [
+     228,
+     1145
+    ],
+    [
+     262,
+     1192
+    ]
+   ],
+   "alto": 35,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Armario PAX (dormitorio principal)",
+   "habitacion": "dormitorio_principal",
+   "tipo": "armario",
    "caja": [
     [
      5,
@@ -490,71 +577,243 @@
      940
     ]
    ],
-   "alto": 236
+   "alto": 236,
+   "color": "#efede8",
+   "color2": "#b48a5e",
+   "frente": "y+"
   },
   {
-   "nombre": "Armario de madera (hall)",
-   "habitacion": "hall",
+   "nombre": "Armario PAX cristal (dormitorio 2)",
+   "habitacion": "dormitorio_2",
+   "tipo": "armario",
    "caja": [
     [
-     683,
-     880
+     10,
+     782
     ],
     [
-     780,
-     935
+     205,
+     858
     ]
    ],
-   "alto": 200
+   "alto": 236,
+   "color": "#b48a5e",
+   "color2": "#cdd5d2",
+   "frente": "y-"
   },
   {
-   "nombre": "Armario empotrado (despacho)",
-   "habitacion": "despacho",
+   "nombre": "Cama Montessori",
+   "habitacion": "dormitorio_2",
+   "tipo": "cama",
    "caja": [
     [
-     632,
-     942
+     30,
+     545
     ],
     [
-     766,
-     1006
+     165,
+     615
     ]
    ],
-   "alto": 260
+   "alto": 30,
+   "cabecero": "y-",
+   "color": "#f4f2ee",
+   "color2": "#d2b48c"
   },
   {
-   "nombre": "Bañera",
-   "habitacion": "bano_1",
+   "nombre": "Estantería de cubos",
+   "habitacion": "dormitorio_2",
+   "tipo": "caja",
    "caja": [
+    [
+     170,
+     545
+    ],
+    [
+     212,
+     620
+    ]
+   ],
+   "alto": 100,
+   "color": "#f2efe9"
+  },
+  {
+   "nombre": "Cómoda",
+   "habitacion": "dormitorio_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     12,
+     640
+    ],
+    [
+     60,
+     740
+    ]
+   ],
+   "alto": 90,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Alfombra",
+   "habitacion": "salon",
+   "tipo": "alfombra",
+   "caja": [
+    [
+     338,
+     958
+    ],
     [
      495,
-     490
-    ],
-    [
-     560,
-     640
+     1205
     ]
    ],
-   "alto": 55
+   "color": "#cdcac4"
   },
   {
    "nombre": "Sofá",
    "habitacion": "salon",
+   "tipo": "sofa",
    "caja": [
     [
      500,
-     955
+     960
     ],
     [
-     590,
-     1190
+     592,
+     1200
     ]
    ],
-   "alto": 85
+   "alto": 85,
+   "respaldo": "x+",
+   "color": "#3a3d42"
+  },
+  {
+   "nombre": "Mueble TV",
+   "habitacion": "salon",
+   "tipo": "caja",
+   "caja": [
+    [
+     333,
+     1010
+    ],
+    [
+     373,
+     1180
+    ]
+   ],
+   "alto": 50,
+   "color": "#f0eeea"
+  },
+  {
+   "nombre": "Televisión",
+   "habitacion": "salon",
+   "tipo": "pantalla",
+   "caja": [
+    [
+     345,
+     1040
+    ],
+    [
+     350,
+     1150
+    ]
+   ],
+   "desde": 55,
+   "alto": 125,
+   "color": "#0d0d0f"
+  },
+  {
+   "nombre": "Butaca 1",
+   "habitacion": "salon",
+   "tipo": "sofa",
+   "caja": [
+    [
+     330,
+     1258
+    ],
+    [
+     402,
+     1330
+    ]
+   ],
+   "alto": 75,
+   "respaldo": "y+",
+   "color": "#e7ddcf"
+  },
+  {
+   "nombre": "Butaca 2",
+   "habitacion": "salon",
+   "tipo": "sofa",
+   "caja": [
+    [
+     425,
+     1250
+    ],
+    [
+     497,
+     1322
+    ]
+   ],
+   "alto": 75,
+   "respaldo": "y+",
+   "color": "#e7ddcf"
+  },
+  {
+   "nombre": "Mesa de juguetes",
+   "habitacion": "salon",
+   "tipo": "mesa",
+   "caja": [
+    [
+     195,
+     1270
+    ],
+    [
+     275,
+     1320
+    ]
+   ],
+   "alto": 50,
+   "color": "#d8b98f"
+  },
+  {
+   "nombre": "Maceta grande",
+   "habitacion": "salon",
+   "tipo": "planta",
+   "caja": [
+    [
+     520,
+     1285
+    ],
+    [
+     560,
+     1325
+    ]
+   ],
+   "alto": 110,
+   "color": "#5b7a3a"
+  },
+  {
+   "nombre": "Maceta",
+   "habitacion": "salon",
+   "tipo": "planta",
+   "caja": [
+    [
+     310,
+     1215
+    ],
+    [
+     340,
+     1245
+    ]
+   ],
+   "alto": 80,
+   "color": "#5b7a3a"
   },
   {
    "nombre": "Mesa de comedor",
    "habitacion": "comedor",
+   "tipo": "mesa",
    "caja": [
     [
      440,
@@ -565,11 +824,448 @@
      830
     ]
    ],
-   "alto": 75
+   "alto": 75,
+   "color": "#6b4226"
+  },
+  {
+   "nombre": "Silla 1",
+   "habitacion": "comedor",
+   "tipo": "silla",
+   "caja": [
+    [
+     455,
+     718
+    ],
+    [
+     497,
+     758
+    ]
+   ],
+   "alto": 45,
+   "respaldo": "y-",
+   "color": "#dcd9d3"
+  },
+  {
+   "nombre": "Silla 2",
+   "habitacion": "comedor",
+   "tipo": "silla",
+   "caja": [
+    [
+     510,
+     718
+    ],
+    [
+     552,
+     758
+    ]
+   ],
+   "alto": 45,
+   "respaldo": "y-",
+   "color": "#dcd9d3"
+  },
+  {
+   "nombre": "Silla 3",
+   "habitacion": "comedor",
+   "tipo": "silla",
+   "caja": [
+    [
+     455,
+     832
+    ],
+    [
+     497,
+     872
+    ]
+   ],
+   "alto": 45,
+   "respaldo": "y+",
+   "color": "#dcd9d3"
+  },
+  {
+   "nombre": "Silla 4",
+   "habitacion": "comedor",
+   "tipo": "silla",
+   "caja": [
+    [
+     510,
+     832
+    ],
+    [
+     552,
+     872
+    ]
+   ],
+   "alto": 45,
+   "respaldo": "y+",
+   "color": "#dcd9d3"
+  },
+  {
+   "nombre": "Armario de madera (hall)",
+   "habitacion": "hall",
+   "tipo": "armario",
+   "caja": [
+    [
+     683,
+     880
+    ],
+    [
+     780,
+     935
+    ]
+   ],
+   "alto": 200,
+   "color": "#4a2416",
+   "color2": "#4a2416",
+   "frente": "y-"
+  },
+  {
+   "nombre": "Consola",
+   "habitacion": "hall",
+   "tipo": "mesa",
+   "caja": [
+    [
+     845,
+     700
+    ],
+    [
+     878,
+     820
+    ]
+   ],
+   "alto": 80,
+   "color": "#b98a58"
+  },
+  {
+   "nombre": "Armario empotrado (despacho)",
+   "habitacion": "despacho",
+   "tipo": "armario",
+   "caja": [
+    [
+     632,
+     942
+    ],
+    [
+     766,
+     1006
+    ]
+   ],
+   "alto": 260,
+   "color": "#4a2416",
+   "color2": "#4a2416",
+   "frente": "y+"
+  },
+  {
+   "nombre": "Escritorio",
+   "habitacion": "despacho",
+   "tipo": "mesa",
+   "caja": [
+    [
+     635,
+     1050
+    ],
+    [
+     705,
+     1230
+    ]
+   ],
+   "alto": 75,
+   "color": "#c98a4b"
+  },
+  {
+   "nombre": "Silla de escritorio",
+   "habitacion": "despacho",
+   "tipo": "silla",
+   "caja": [
+    [
+     712,
+     1108
+    ],
+    [
+     762,
+     1158
+    ]
+   ],
+   "alto": 50,
+   "respaldo": "x+",
+   "color": "#202022"
+  },
+  {
+   "nombre": "Sofá cama",
+   "habitacion": "despacho",
+   "tipo": "sofa",
+   "caja": [
+    [
+     640,
+     1290
+    ],
+    [
+     850,
+     1358
+    ]
+   ],
+   "alto": 70,
+   "respaldo": "y+",
+   "color": "#bdb9b2"
+  },
+  {
+   "nombre": "Bañera",
+   "habitacion": "bano_1",
+   "tipo": "banera",
+   "caja": [
+    [
+     495,
+     490
+    ],
+    [
+     560,
+     640
+    ]
+   ],
+   "alto": 55,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Lavabo",
+   "habitacion": "bano_1",
+   "tipo": "caja",
+   "caja": [
+    [
+     262,
+     490
+    ],
+    [
+     318,
+     535
+    ]
+   ],
+   "alto": 85,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Mueble bajo ventana",
+   "habitacion": "bano_1",
+   "tipo": "caja",
+   "caja": [
+    [
+     370,
+     490
+    ],
+    [
+     470,
+     530
+    ]
+   ],
+   "alto": 85,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Inodoro",
+   "habitacion": "bano_1",
+   "tipo": "inodoro",
+   "caja": [
+    [
+     445,
+     545
+    ],
+    [
+     490,
+     590
+    ]
+   ],
+   "alto": 40,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Bidé",
+   "habitacion": "bano_1",
+   "tipo": "inodoro",
+   "caja": [
+    [
+     445,
+     598
+    ],
+    [
+     490,
+     640
+    ]
+   ],
+   "alto": 40,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Encimera con fogones",
+   "habitacion": "cocina",
+   "tipo": "encimera",
+   "caja": [
+    [
+     520,
+     345
+    ],
+    [
+     665,
+     405
+    ]
+   ],
+   "alto": 90,
+   "color": "#f4f4f2"
+  },
+  {
+   "nombre": "Lavadora",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     455,
+     348
+    ],
+    [
+     515,
+     408
+    ]
+   ],
+   "alto": 85,
+   "color": "#f4f4f2"
+  },
+  {
+   "nombre": "Barra",
+   "habitacion": "cocina",
+   "tipo": "encimera",
+   "caja": [
+    [
+     592,
+     485
+    ],
+    [
+     650,
+     645
+    ]
+   ],
+   "alto": 90,
+   "color": "#f4f4f2"
+  },
+  {
+   "nombre": "Taburete 1",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     656,
+     520
+    ],
+    [
+     688,
+     552
+    ]
+   ],
+   "alto": 65,
+   "color": "#d8b98f"
+  },
+  {
+   "nombre": "Taburete 2",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     656,
+     580
+    ],
+    [
+     688,
+     612
+    ]
+   ],
+   "alto": 65,
+   "color": "#d8b98f"
+  },
+  {
+   "nombre": "Fregadero",
+   "habitacion": "cocina",
+   "tipo": "encimera",
+   "caja": [
+    [
+     752,
+     345
+    ],
+    [
+     810,
+     420
+    ]
+   ],
+   "alto": 90,
+   "color": "#f4f4f2"
+  },
+  {
+   "nombre": "Nevera retro",
+   "habitacion": "cocina",
+   "tipo": "caja",
+   "caja": [
+    [
+     752,
+     425
+    ],
+    [
+     810,
+     485
+    ]
+   ],
+   "alto": 170,
+   "color": "#c9d8bf"
+  },
+  {
+   "nombre": "Plato de ducha",
+   "habitacion": "bano_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     470,
+     192
+    ],
+    [
+     540,
+     276
+    ]
+   ],
+   "alto": 6,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Inodoro",
+   "habitacion": "bano_2",
+   "tipo": "inodoro",
+   "caja": [
+    [
+     530,
+     280
+    ],
+    [
+     572,
+     320
+    ]
+   ],
+   "alto": 40,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Lavabo",
+   "habitacion": "bano_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     588,
+     192
+    ],
+    [
+     640,
+     238
+    ]
+   ],
+   "alto": 85,
+   "color": "#f7f7f5"
   },
   {
    "nombre": "Despensa empotrada (pasillo, junto a la cocina)",
    "habitacion": "pasillo",
+   "tipo": "armario",
    "caja": [
     [
      760,
@@ -581,11 +1277,14 @@
     ]
    ],
    "alto": 260,
-   "nota": "frente a x≈760; la pared real sigue recta en x≈810"
+   "color": "#e9e2d4",
+   "color2": "#e9e2d4",
+   "frente": "x-"
   },
   {
    "nombre": "Armario empotrado (tendedero)",
    "habitacion": "tendedero",
+   "tipo": "armario",
    "caja": [
     [
      760,
@@ -596,7 +1295,44 @@
      180
     ]
    ],
-   "alto": 260
+   "alto": 260,
+   "color": "#e9e2d4",
+   "color2": "#e9e2d4",
+   "frente": "x-"
+  },
+  {
+   "nombre": "Cómoda",
+   "habitacion": "tendedero",
+   "tipo": "caja",
+   "caja": [
+    [
+     485,
+     95
+    ],
+    [
+     530,
+     175
+    ]
+   ],
+   "alto": 100,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Tendedero",
+   "habitacion": "tendedero",
+   "tipo": "tendedero",
+   "caja": [
+    [
+     560,
+     55
+    ],
+    [
+     700,
+     115
+    ]
+   ],
+   "alto": 90,
+   "color": "#c8c8c8"
   }
  ],
  "dudas": [],
@@ -729,5 +1465,20 @@
   "inclinacion_desde_vertical": 30,
   "giro": 25,
   "nota": "Elegida por Jorge: vista desde el oeste (hall abajo, ventanal a la derecha). FIJA: no cambiar o hay que rehacer todos los renders."
+ },
+ "fotos": {
+  "despacho": "fotos/despacho/",
+  "hall": "fotos/hall/",
+  "comedor": "fotos/comedor/",
+  "salon": "fotos/salon/",
+  "antigua_terraza": "fotos/antigua_terraza/",
+  "bano_1": "fotos/bano_1/",
+  "dormitorio_2": "fotos/dormitorio_2/",
+  "distribuidor": "fotos/distribuidor/",
+  "dormitorio_principal": "fotos/dormitorio_principal/",
+  "cocina": "fotos/cocina/",
+  "bano_2": "fotos/bano_2/",
+  "pasillo": "fotos/pasillo/",
+  "tendedero": "fotos/tendedero/"
  }
 }
