@@ -212,11 +212,11 @@
      487
     ],
     [
-     565,
+     578,
      487
     ],
     [
-     565,
+     578,
      660
     ],
     [
@@ -955,91 +955,6 @@
    "color": "#bdb9b2"
   },
   {
-   "nombre": "Bañera",
-   "habitacion": "bano_1",
-   "tipo": "banera",
-   "caja": [
-    [
-     495,
-     490
-    ],
-    [
-     560,
-     640
-    ]
-   ],
-   "alto": 55,
-   "color": "#f7f7f5"
-  },
-  {
-   "nombre": "Lavabo",
-   "habitacion": "bano_1",
-   "tipo": "caja",
-   "caja": [
-    [
-     262,
-     490
-    ],
-    [
-     318,
-     535
-    ]
-   ],
-   "alto": 85,
-   "color": "#f7f7f5"
-  },
-  {
-   "nombre": "Mueble bajo ventana",
-   "habitacion": "bano_1",
-   "tipo": "caja",
-   "caja": [
-    [
-     370,
-     490
-    ],
-    [
-     470,
-     530
-    ]
-   ],
-   "alto": 85,
-   "color": "#f2f0ec"
-  },
-  {
-   "nombre": "Inodoro",
-   "habitacion": "bano_1",
-   "tipo": "inodoro",
-   "caja": [
-    [
-     445,
-     545
-    ],
-    [
-     490,
-     590
-    ]
-   ],
-   "alto": 40,
-   "color": "#f7f7f5"
-  },
-  {
-   "nombre": "Bidé",
-   "habitacion": "bano_1",
-   "tipo": "inodoro",
-   "caja": [
-    [
-     445,
-     598
-    ],
-    [
-     490,
-     640
-    ]
-   ],
-   "alto": 40,
-   "color": "#f7f7f5"
-  },
-  {
    "nombre": "Encimera con fogones",
    "habitacion": "cocina",
    "tipo": "encimera",
@@ -1402,6 +1317,110 @@
    "alto": 45,
    "respaldo": "y+",
    "color": "#e3cdb3"
+  },
+  {
+   "nombre": "Lavabo de pie",
+   "habitacion": "bano_1",
+   "tipo": "inodoro",
+   "caja": [
+    [
+     240,
+     494
+    ],
+    [
+     290,
+     544
+    ]
+   ],
+   "alto": 85,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Mueble de cajones",
+   "habitacion": "bano_1",
+   "tipo": "armario",
+   "caja": [
+    [
+     296,
+     490
+    ],
+    [
+     455,
+     530
+    ]
+   ],
+   "alto": 85,
+   "color": "#f4f2ee",
+   "color2": "#c9a274",
+   "frente": "y+"
+  },
+  {
+   "nombre": "Bidé",
+   "habitacion": "bano_1",
+   "tipo": "inodoro",
+   "caja": [
+    [
+     300,
+     614
+    ],
+    [
+     345,
+     658
+    ]
+   ],
+   "alto": 40,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Inodoro",
+   "habitacion": "bano_1",
+   "tipo": "inodoro",
+   "caja": [
+    [
+     403,
+     600
+    ],
+    [
+     450,
+     658
+    ]
+   ],
+   "alto": 40,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Cisterna",
+   "habitacion": "bano_1",
+   "tipo": "caja",
+   "caja": [
+    [
+     405,
+     642
+    ],
+    [
+     448,
+     659
+    ]
+   ],
+   "alto": 80,
+   "color": "#f7f7f5"
+  },
+  {
+   "nombre": "Bañera",
+   "habitacion": "bano_1",
+   "tipo": "banera",
+   "caja": [
+    [
+     504,
+     490
+    ],
+    [
+     577,
+     650
+    ]
+   ],
+   "alto": 55,
+   "color": "#f7f7f5"
   }
  ],
  "dudas": [],
