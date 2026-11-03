@@ -167,14 +167,6 @@
    "poligono": [
     [
      630,
-     1006
-    ],
-    [
-     766,
-     1006
-    ],
-    [
-     766,
      940
     ],
     [
@@ -454,9 +446,7 @@
    "y": [
     256,
     315
-   ],
-   "seguro": false,
-   "nota": "marcada en amarillo: confirmar"
+   ]
   },
   {
    "entre": [
@@ -522,8 +512,8 @@
    "habitacion": "despacho",
    "caja": [
     [
-     605,
-     940
+     632,
+     942
     ],
     [
      766,
@@ -578,20 +568,17 @@
    "alto": 75
   }
  ],
- "dudas": [
-  "Puerta del baño 2: marcada en amarillo en el pasillo (x≈668, y 256-315); confirmar",
-  "Orientación exacta: dirección o calle para calcular el sol"
- ],
+ "dudas": [],
  "ventanas": [
   {
    "habitacion": "salon",
    "nombre": "Ventanal antigua terraza (punta este)",
    "x": [
-    100,
+    118,
     200
    ],
    "y": [
-    1314,
+    1324,
     1372
    ],
    "desde": 65,
@@ -627,16 +614,17 @@
    "habitacion": "dormitorio_principal",
    "nombre": "Ventana a la antigua terraza",
    "x": [
-    105,
-    268
+    125,
+    215
    ],
    "y": [
-    1308,
-    1222
+    1297,
+    1250
    ],
    "desde": 90,
    "hasta": 210,
-   "da_a": "salon"
+   "da_a": "salon",
+   "nota": "no llega al ventanal: hay pared entre ambas"
   },
   {
    "habitacion": "dormitorio_2",
@@ -696,10 +684,10 @@
   }
  ],
  "orientacion": {
-  "fachada_salon": "sur",
-  "eje_+Y": "sur",
-  "eje_+X": "oeste",
-  "nota": "aproximada; afinar con la dirección"
+  "azimut_eje_+Y": 183.8,
+  "nota": "Fachada del salón (eje +Y) mirando a 183,8° (sur, 4° hacia el oeste), medido sobre el edificio de Calle del Ferrocarril en OpenStreetMap. Rumbo de una dirección del plano (dx,dy) = 183.8 + atan2(dx,dy).",
+  "lat": 40.4011,
+  "lon": -3.6975
  },
  "exterior": {
   "sur": "fachada principal (ventanal de la antigua terraza)",
