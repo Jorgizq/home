@@ -1,23 +1,378 @@
 {
- "nota": "Borrador de puntos de luz, situados con el techo del escaneo (tools/escaneo/techo.py) y las fotos. x,y en cm como layout.json; z = altura del punto de luz. 'entidad' se rellena con la lista de Home Assistant.",
+ "nota": "Puntos de luz. x,y en cm como layout.json; z = altura. 'entidad' = Home Assistant (null = no está en HA). 'seguro': false = por confirmar.",
  "luces": [
-  {"n": 1, "nombre": "Ventilador con luz", "habitacion": "salon", "tipo": "techo", "x": 470, "y": 1085, "z": 255, "entidad": null},
-  {"n": 2, "nombre": "Lámpara de mimbre 1", "habitacion": "salon", "tipo": "colgante", "x": 335, "y": 1300, "z": 210, "entidad": null},
-  {"n": 3, "nombre": "Lámpara de mimbre 2", "habitacion": "salon", "tipo": "colgante", "x": 565, "y": 1300, "z": 210, "entidad": null},
-  {"n": 4, "nombre": "Lámpara junto a la TV", "habitacion": "salon", "tipo": "mesa", "x": 355, "y": 1192, "z": 90, "entidad": null},
-  {"n": 5, "nombre": "Colgantes del comedor", "habitacion": "comedor", "tipo": "colgante", "x": 510, "y": 770, "z": 190, "nota": "dos pantallas, en x 478 y 543", "entidad": null},
-  {"n": 6, "nombre": "Lámpara de la consola", "habitacion": "hall", "tipo": "mesa", "x": 862, "y": 790, "z": 115, "entidad": null},
-  {"n": 7, "nombre": "Focos del despacho", "habitacion": "despacho", "tipo": "focos", "x": 720, "y": 1190, "z": 268, "puntos": [[720,1080],[720,1160],[720,1240],[720,1320]], "entidad": null},
-  {"n": 8, "nombre": "Ventilador con luz", "habitacion": "dormitorio_principal", "tipo": "techo", "x": 135, "y": 1100, "z": 255, "entidad": null},
-  {"n": 9, "nombre": "Lámpara mesilla 1", "habitacion": "dormitorio_principal", "tipo": "mesa", "x": 27, "y": 983, "z": 80, "entidad": null},
-  {"n": 10, "nombre": "Lámpara mesilla 2", "habitacion": "dormitorio_principal", "tipo": "mesa", "x": 27, "y": 1221, "z": 80, "entidad": null},
-  {"n": 11, "nombre": "Lámpara globo", "habitacion": "dormitorio_2", "tipo": "colgante", "x": 112, "y": 700, "z": 215, "entidad": null},
-  {"n": 12, "nombre": "Focos del distribuidor", "habitacion": "distribuidor", "tipo": "focos", "x": 273, "y": 767, "z": 268, "entidad": null},
-  {"n": 13, "nombre": "Focos del baño grande", "habitacion": "bano_1", "tipo": "focos", "x": 400, "y": 575, "z": 260, "puntos": [[340,575],[460,575]], "entidad": null},
-  {"n": 14, "nombre": "Aplique del espejo", "habitacion": "bano_1", "tipo": "aplique", "x": 265, "y": 497, "z": 200, "entidad": null},
-  {"n": 15, "nombre": "Focos de la cocina", "habitacion": "cocina", "tipo": "focos", "x": 715, "y": 500, "z": 255, "puntos": [[715,400],[715,500],[715,600],[540,413]], "entidad": null},
-  {"n": 16, "nombre": "Aplique del espejo", "habitacion": "bano_2", "tipo": "aplique", "x": 614, "y": 198, "z": 200, "entidad": null},
-  {"n": 17, "nombre": "Luz del pasillo", "habitacion": "pasillo", "tipo": "techo", "x": 710, "y": 255, "z": 260, "entidad": null},
-  {"n": 18, "nombre": "Lámpara de papel", "habitacion": "tendedero", "tipo": "colgante", "x": 650, "y": 130, "z": 220, "entidad": null}
+  {
+   "n": 1,
+   "nombre": "Tele izquierda",
+   "habitacion": "salon",
+   "tipo": "mesa",
+   "x": 353,
+   "y": 1015,
+   "z": 95,
+   "entidad": "light.tele_izquierda"
+  },
+  {
+   "n": 2,
+   "nombre": "Tele derecha",
+   "habitacion": "salon",
+   "tipo": "mesa",
+   "x": 353,
+   "y": 1178,
+   "z": 95,
+   "entidad": "light.tele_derecha"
+  },
+  {
+   "n": 3,
+   "nombre": "Sofá 1",
+   "habitacion": "salon",
+   "tipo": "foco",
+   "x": 545,
+   "y": 1010,
+   "z": 268,
+   "entidad": "light.sofa_1"
+  },
+  {
+   "n": 4,
+   "nombre": "Sofá 2",
+   "habitacion": "salon",
+   "tipo": "foco",
+   "x": 545,
+   "y": 1090,
+   "z": 268,
+   "entidad": "light.sofa_2"
+  },
+  {
+   "n": 5,
+   "nombre": "Sofá 3",
+   "habitacion": "salon",
+   "tipo": "foco",
+   "x": 545,
+   "y": 1170,
+   "z": 268,
+   "entidad": "light.sofa_3"
+  },
+  {
+   "n": 6,
+   "nombre": "Comedor 1",
+   "habitacion": "comedor",
+   "tipo": "colgante",
+   "x": 478,
+   "y": 770,
+   "z": 190,
+   "entidad": "light.comedor_1"
+  },
+  {
+   "n": 7,
+   "nombre": "Comedor 2",
+   "habitacion": "comedor",
+   "tipo": "colgante",
+   "x": 543,
+   "y": 770,
+   "z": 190,
+   "entidad": "light.comedor_2"
+  },
+  {
+   "n": 8,
+   "nombre": "Hall (lámpara de la consola)",
+   "habitacion": "hall",
+   "tipo": "mesa",
+   "x": 862,
+   "y": 790,
+   "z": 115,
+   "entidad": "light.hall",
+   "seguro": false
+  },
+  {
+   "n": 9,
+   "nombre": "Escritorio 1",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 690,
+   "y": 1080,
+   "z": 268,
+   "entidad": "light.escritorio_1"
+  },
+  {
+   "n": 10,
+   "nombre": "Escritorio 2",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 690,
+   "y": 1140,
+   "z": 268,
+   "entidad": "light.escritorio_2"
+  },
+  {
+   "n": 11,
+   "nombre": "Escritorio 3",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 690,
+   "y": 1200,
+   "z": 268,
+   "entidad": "light.escritorio_3"
+  },
+  {
+   "n": 12,
+   "nombre": "Entrada despacho 1",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 814,
+   "y": 962,
+   "z": 268,
+   "entidad": "light.entrada_despacho_1"
+  },
+  {
+   "n": 13,
+   "nombre": "Entrada despacho 2",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 814,
+   "y": 1025,
+   "z": 268,
+   "entidad": "light.entrada_despacho_2"
+  },
+  {
+   "n": 14,
+   "nombre": "Armario despacho 1",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 670,
+   "y": 1035,
+   "z": 268,
+   "entidad": "light.armario_despacho_1"
+  },
+  {
+   "n": 15,
+   "nombre": "Armario despacho 2",
+   "habitacion": "despacho",
+   "tipo": "foco",
+   "x": 735,
+   "y": 1035,
+   "z": 268,
+   "entidad": "light.armario_despacho_2"
+  },
+  {
+   "n": 16,
+   "nombre": "Mesilla (lado del armario)",
+   "habitacion": "dormitorio_principal",
+   "tipo": "mesa",
+   "x": 27,
+   "y": 983,
+   "z": 80,
+   "entidad": "light.mesilla_jorge",
+   "seguro": false
+  },
+  {
+   "n": 17,
+   "nombre": "Mesilla (lado de la ventana)",
+   "habitacion": "dormitorio_principal",
+   "tipo": "mesa",
+   "x": 27,
+   "y": 1221,
+   "z": 80,
+   "entidad": "light.mesilla_marta",
+   "seguro": false
+  },
+  {
+   "n": 18,
+   "nombre": "Foco habitación 1",
+   "habitacion": "dormitorio_principal",
+   "tipo": "foco",
+   "x": 110,
+   "y": 1160,
+   "z": 268,
+   "entidad": "light.foco_habitacion_1"
+  },
+  {
+   "n": 19,
+   "nombre": "Foco habitación 2",
+   "habitacion": "dormitorio_principal",
+   "tipo": "foco",
+   "x": 180,
+   "y": 1160,
+   "z": 268,
+   "entidad": "light.foco_habitacion_2"
+  },
+  {
+   "n": 20,
+   "nombre": "Foco habitación 3",
+   "habitacion": "dormitorio_principal",
+   "tipo": "foco",
+   "x": 250,
+   "y": 1160,
+   "z": 268,
+   "entidad": "light.foco_habitacion_3"
+  },
+  {
+   "n": 21,
+   "nombre": "Foco habitación 4",
+   "habitacion": "dormitorio_principal",
+   "tipo": "foco",
+   "x": 130,
+   "y": 1255,
+   "z": 268,
+   "entidad": "light.foco_habitacion_4"
+  },
+  {
+   "n": 22,
+   "nombre": "Foco habitación 5",
+   "habitacion": "dormitorio_principal",
+   "tipo": "foco",
+   "x": 215,
+   "y": 1218,
+   "z": 268,
+   "entidad": "light.foco_habitacion_5"
+  },
+  {
+   "n": 23,
+   "nombre": "Zeppelin",
+   "habitacion": "dormitorio_2",
+   "tipo": "colgante",
+   "x": 112,
+   "y": 700,
+   "z": 215,
+   "entidad": "light.zeppelin"
+  },
+  {
+   "n": 24,
+   "nombre": "Luz pasillo",
+   "habitacion": "distribuidor",
+   "tipo": "techo",
+   "x": 273,
+   "y": 767,
+   "z": 265,
+   "entidad": "light.luz_pasillo",
+   "seguro": false,
+   "nota": "¿distribuidor o pasillo de la cocina?"
+  },
+  {
+   "n": 25,
+   "nombre": "Ventilador con luz",
+   "habitacion": "salon",
+   "tipo": "techo",
+   "x": 470,
+   "y": 1085,
+   "z": 255,
+   "entidad": null
+  },
+  {
+   "n": 26,
+   "nombre": "Lámpara de mimbre 1",
+   "habitacion": "salon",
+   "tipo": "colgante",
+   "x": 335,
+   "y": 1300,
+   "z": 210,
+   "entidad": null
+  },
+  {
+   "n": 27,
+   "nombre": "Lámpara de mimbre 2",
+   "habitacion": "salon",
+   "tipo": "colgante",
+   "x": 565,
+   "y": 1300,
+   "z": 210,
+   "entidad": null
+  },
+  {
+   "n": 28,
+   "nombre": "Ventilador con luz",
+   "habitacion": "dormitorio_principal",
+   "tipo": "techo",
+   "x": 135,
+   "y": 1090,
+   "z": 255,
+   "entidad": null
+  },
+  {
+   "n": 29,
+   "nombre": "Focos del baño grande",
+   "habitacion": "bano_1",
+   "tipo": "foco",
+   "x": 400,
+   "y": 575,
+   "z": 260,
+   "entidad": null,
+   "puntos": [
+    [
+     340,
+     575
+    ],
+    [
+     460,
+     575
+    ]
+   ]
+  },
+  {
+   "n": 30,
+   "nombre": "Aplique del espejo",
+   "habitacion": "bano_1",
+   "tipo": "aplique",
+   "x": 265,
+   "y": 497,
+   "z": 200,
+   "entidad": null
+  },
+  {
+   "n": 31,
+   "nombre": "Focos de la cocina",
+   "habitacion": "cocina",
+   "tipo": "foco",
+   "x": 715,
+   "y": 500,
+   "z": 255,
+   "entidad": null,
+   "puntos": [
+    [
+     715,
+     400
+    ],
+    [
+     715,
+     500
+    ],
+    [
+     715,
+     600
+    ],
+    [
+     540,
+     413
+    ]
+   ]
+  },
+  {
+   "n": 32,
+   "nombre": "Aplique del espejo",
+   "habitacion": "bano_2",
+   "tipo": "aplique",
+   "x": 614,
+   "y": 198,
+   "z": 200,
+   "entidad": null
+  },
+  {
+   "n": 33,
+   "nombre": "Luz del pasillo de la cocina",
+   "habitacion": "pasillo",
+   "tipo": "techo",
+   "x": 710,
+   "y": 255,
+   "z": 260,
+   "entidad": null
+  },
+  {
+   "n": 34,
+   "nombre": "Lámpara de papel",
+   "habitacion": "tendedero",
+   "tipo": "colgante",
+   "x": 650,
+   "y": 130,
+   "z": 220,
+   "entidad": null
+  }
  ]
 }
