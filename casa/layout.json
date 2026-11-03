@@ -740,7 +740,7 @@
   {
    "nombre": "Butaca 1",
    "habitacion": "salon",
-   "tipo": "sofa",
+   "tipo": "butaca",
    "caja": [
     [
      330,
@@ -751,14 +751,15 @@
      1330
     ]
    ],
-   "alto": 75,
+   "alto": 80,
    "respaldo": "y+",
-   "color": "#e7ddcf"
+   "color": "#e7ddcf",
+   "color2": "#c9a274"
   },
   {
    "nombre": "Butaca 2",
    "habitacion": "salon",
-   "tipo": "sofa",
+   "tipo": "butaca",
    "caja": [
     [
      425,
@@ -769,9 +770,10 @@
      1322
     ]
    ],
-   "alto": 75,
+   "alto": 80,
    "respaldo": "y+",
-   "color": "#e7ddcf"
+   "color": "#e7ddcf",
+   "color2": "#c9a274"
   },
   {
    "nombre": "Mesa de juguetes",
@@ -992,15 +994,15 @@
   {
    "nombre": "Silla de escritorio",
    "habitacion": "despacho",
-   "tipo": "silla",
+   "tipo": "silla_oficina",
    "caja": [
     [
      712,
-     1108
+     1105
     ],
     [
-     762,
-     1158
+     770,
+     1163
     ]
    ],
    "alto": 50,
@@ -1133,7 +1135,7 @@
   {
    "nombre": "Inodoro",
    "habitacion": "bano_2",
-   "tipo": "inodoro",
+   "tipo": "vater",
    "caja": [
     [
      530,
@@ -1145,12 +1147,13 @@
     ]
    ],
    "alto": 40,
-   "color": "#f7f7f5"
+   "color": "#f7f7f5",
+   "pared": "y+"
   },
   {
    "nombre": "Lavabo",
    "habitacion": "bano_2",
-   "tipo": "caja",
+   "tipo": "lavabo",
    "caja": [
     [
      588,
@@ -1162,7 +1165,8 @@
     ]
    ],
    "alto": 85,
-   "color": "#f7f7f5"
+   "color": "#f7f7f5",
+   "pared": "y-"
   },
   {
    "nombre": "Despensa empotrada (pasillo, junto a la cocina)",
@@ -1367,7 +1371,7 @@
   {
    "nombre": "Lavabo de pie",
    "habitacion": "bano_1",
-   "tipo": "inodoro",
+   "tipo": "lavabo",
    "caja": [
     [
      240,
@@ -1379,7 +1383,8 @@
     ]
    ],
    "alto": 85,
-   "color": "#f7f7f5"
+   "color": "#f7f7f5",
+   "pared": "y-"
   },
   {
    "nombre": "Mueble de cajones",
@@ -1403,7 +1408,7 @@
   {
    "nombre": "Bidé",
    "habitacion": "bano_1",
-   "tipo": "inodoro",
+   "tipo": "bide",
    "caja": [
     [
      300,
@@ -1415,12 +1420,13 @@
     ]
    ],
    "alto": 40,
-   "color": "#f7f7f5"
+   "color": "#f7f7f5",
+   "pared": "y+"
   },
   {
    "nombre": "Inodoro",
    "habitacion": "bano_1",
-   "tipo": "inodoro",
+   "tipo": "vater",
    "caja": [
     [
      403,
@@ -1432,24 +1438,8 @@
     ]
    ],
    "alto": 40,
-   "color": "#f7f7f5"
-  },
-  {
-   "nombre": "Cisterna",
-   "habitacion": "bano_1",
-   "tipo": "caja",
-   "caja": [
-    [
-     405,
-     642
-    ],
-    [
-     448,
-     659
-    ]
-   ],
-   "alto": 80,
-   "color": "#f7f7f5"
+   "color": "#f7f7f5",
+   "pared": "y+"
   },
   {
    "nombre": "Bañera",
@@ -1590,6 +1580,42 @@
    "alto": 90,
    "color": "#f4f4f2",
    "frente": "y+"
+  },
+  {
+   "nombre": "Pantalla 1",
+   "habitacion": "despacho",
+   "tipo": "monitor",
+   "caja": [
+    [
+     642,
+     1082
+    ],
+    [
+     668,
+     1140
+    ]
+   ],
+   "desde": 75,
+   "alto": 122,
+   "frente": "x+"
+  },
+  {
+   "nombre": "Pantalla 2",
+   "habitacion": "despacho",
+   "tipo": "monitor",
+   "caja": [
+    [
+     642,
+     1143
+    ],
+    [
+     668,
+     1201
+    ]
+   ],
+   "desde": 75,
+   "alto": 122,
+   "frente": "x+"
   }
  ],
  "dudas": [],

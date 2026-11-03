@@ -11,7 +11,7 @@ import json, math, argparse, warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 import numpy as np, trimesh, bpy
 from mathutils import Vector
-from shapely.geometry import Polygon, LineString, box
+from shapely.geometry import Polygon, LineString, Point, box
 from shapely.ops import unary_union
 
 ap = argparse.ArgumentParser()
@@ -336,6 +336,66 @@ def mueble(i, mb):
         cer = acabado('ceramica', mb.get('color', '#f7f7f5'))
         pieza(b.difference(b.buffer(-0.07, join_style=2)), 0, alto, n, cer, 0.02)
         pieza(b.buffer(-0.07, join_style=2), 0, 0.18, n + '_fondo', cer, 0.02)
+    elif t in ('vater', 'bide', 'lavabo'):  # sanitarios con forma: 'pared' = lado de la caja pegado a la pared
+        cer = acabado('ceramica', mb.get('color', '#f7f7f5')); pared = mb.get('pared', 'y+')
+        x0b, y0b, x1b, y1b = b.bounds; cx, cy = b.centroid.x, b.centroid.y
+        hacia = {'x-': (1, 0), 'x+': (-1, 0), 'y-': (0, 1), 'y+': (0, -1)}[pared]  # de la pared hacia fuera
+        ancho = (y1b - y0b) if pared[0] == 'x' else (x1b - x0b); fondo = (x1b - x0b) if pared[0] == 'x' else (y1b - y0b)
+        borde = {'x-': x0b, 'x+': x1b, 'y-': y0b, 'y+': y1b}[pared]
+        def ovalo(dist, semi_fondo, semi_ancho):  # óvalo con el eje largo saliendo de la pared
+            from shapely import affinity
+            px = borde + hacia[0] * dist if pared[0] == 'x' else cx
+            py = borde + hacia[1] * dist if pared[0] == 'y' else cy
+            sxx, syy = (semi_fondo, semi_ancho) if pared[0] == 'x' else (semi_ancho, semi_fondo)
+            return affinity.scale(Point(px, py).buffer(1, 32), sxx, syy)
+        if t == 'lavabo':  # columna + lavabo ovalado a 85 cm
+            pieza(ovalo(0.12, 0.07, 0.07), 0, 0.72, n + '_columna', cer, 0.01)
+            pieza(ovalo(fondo * 0.45, fondo * 0.45, ancho * 0.48), 0.72, 0.86, n, cer, 0.02)
+            pieza(ovalo(fondo * 0.48, fondo * 0.3, ancho * 0.35), 0.82, 0.861, n + '_seno', acabado('ceramica', '#e6e6e4'), 0.002)
+        else:  # pie + taza ovalada (+ tapa y cisterna en el váter)
+            pieza(ovalo(fondo * 0.45, fondo * 0.25, ancho * 0.22), 0, 0.3, n + '_pie', cer, 0.02)
+            pieza(ovalo(fondo * 0.5, fondo * 0.42, ancho * 0.38), 0.3, 0.4, n + '_taza', cer, 0.03)
+            if t == 'vater':
+                pieza(ovalo(fondo * 0.52, fondo * 0.4, ancho * 0.37), 0.4, 0.43, n + '_tapa', cer, 0.01)
+                pieza(lado(b, pared, 0.18).buffer(-0.02, join_style=2), 0.38, 0.78, n + '_cisterna', cer, 0.02)
+            else:
+                pieza(ovalo(fondo * 0.5, fondo * 0.28, ancho * 0.26), 0.399, 0.401, n + '_seno', acabado('ceramica', '#e6e6e4'), 0.001)
+    elif t == 'butaca':  # butaca de madera: patas finas, cojines y reposabrazos de listón
+        r = mb.get('respaldo', 'y+'); tela = acabado('tela', mb.get('color', '#e7ddcf'))
+        madera = acabado('madera', mb.get('color2', '#c9a274'))
+        brazos = ('y-', 'y+') if r[0] == 'x' else ('x-', 'x+')
+        x0b, y0b, x1b, y1b = b.bounds; e = 0.03
+        for j, (px, py) in enumerate([(x0b, y0b), (x1b - e, y0b), (x0b, y1b - e), (x1b - e, y1b - e)]):
+            pieza(box(px, py, px + e, py + e), 0, 0.58, n + f'_pata{j}', madera, 0.006)
+        interior = b
+        for br in brazos: interior = interior.difference(lado(b, br, 0.06))
+        pieza(interior, 0.2, 0.24, n + '_bastidor', madera, 0.006)
+        pieza(interior.difference(lado(b, r, 0.12)), 0.24, 0.38, n + '_cojin', tela, 0.035)
+        pieza(lado(interior, r, 0.12), 0.24, alto, n + '_respaldo', tela, 0.035)
+        for j, br in enumerate(brazos): pieza(lado(b, br, 0.06), 0.56, 0.59, n + f'_brazo{j}', madera, 0.008)
+    elif t == 'silla_oficina':  # base de 5 radios con ruedas, columna, asiento, respaldo alto y brazos
+        negro = acabado('tela', mb.get('color', '#202022')); metal = acabado('metal', '#3a3a3c')
+        c0 = b.centroid; rr = min(b.bounds[2] - b.bounds[0], b.bounds[3] - b.bounds[1]) / 2
+        for k in range(5):
+            a_ = 2 * math.pi * k / 5; ex, ey = c0.x + math.cos(a_) * rr, c0.y + math.sin(a_) * rr
+            pieza(LineString([(c0.x, c0.y), (ex, ey)]).buffer(0.018, cap_style=2), 0.05, 0.08, n + f'_radio{k}', metal, 0.004)
+            pieza(Point(ex, ey).buffer(0.025, 12), 0, 0.05, n + f'_rueda{k}', acabado('lacado', '#111111'), 0.01)
+        pieza(c0.buffer(0.025, 16), 0.08, 0.42, n + '_columna', metal, 0.004)
+        asiento = c0.buffer(rr * 0.92, cap_style=3).intersection(b.buffer(0.02))
+        pieza(asiento, 0.42, 0.5, n + '_asiento', negro, 0.03)
+        r = mb.get('respaldo', 'x+')
+        pieza(lado(asiento, r, 0.05), 0.55, CORTE - 0.03, n + '_respaldo', negro, 0.02)
+        for j, br in enumerate(('y-', 'y+') if r[0] == 'x' else ('x-', 'x+')):
+            pieza(lado(asiento, br, 0.05).intersection(asiento.difference(lado(asiento, r, 0.12))), 0.62, 0.66, n + f'_brazo{j}', negro, 0.01)
+    elif t == 'monitor':  # pantalla fina sobre peana; 'frente' = hacia dónde mira la pantalla
+        f = mb.get('frente', 'x+'); desde = mb.get('desde', 75) * M
+        pieza(b.centroid.buffer(0.09, cap_style=3), desde, desde + 0.012, n + '_peana', acabado('metal', '#2b2b2d'), 0.003)
+        pieza(b.centroid.buffer(0.02, cap_style=3), desde, desde + 0.12, n + '_brazo', acabado('metal', '#2b2b2d'), 0.003)
+        atras = {'x+': 'x-', 'x-': 'x+', 'y+': 'y-', 'y-': 'y+'}[f]
+        pantalla = lado(b, atras, 0.025)
+        pieza(pantalla, desde + 0.1, min(alto, CORTE - 0.02), n + '_marco', acabado('lacado', '#151517'), 0.004)
+        pieza(lado(pantalla, f, 0.004), desde + 0.115, min(alto, CORTE - 0.02) - 0.012, n + '_imagen',
+              acabado('ceramica', '#0b1a2a'), 0.001)
     elif t == 'inodoro':
         cer = acabado('ceramica', mb.get('color', '#f7f7f5'))
         rr = min(b.bounds[2] - b.bounds[0], b.bounds[3] - b.bounds[1]) / 2 * 0.95
