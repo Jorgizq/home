@@ -440,6 +440,7 @@ sc.render.filepath = a.salida; sc.render.image_settings.file_format = 'PNG'
 if a.blend:
     sc['azimut_eje_y'] = azY
     t_ = bpy.data.texts.new('luces.json'); t_.write(json.dumps(LZ, ensure_ascii=False))
+    t_ = bpy.data.texts.new('layout.json'); t_.write(json.dumps(L, ensure_ascii=False))
     bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(a.blend), compress=True)
     print('blend ->', a.blend)
 if not a.sin_render:

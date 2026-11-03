@@ -105,8 +105,22 @@ if 'luces' in SOLO:
 if 'sol' in SOLO:
     for az, el in rejilla: trabajos.append((f'sol_az{az:03d}_el{el:02d}.jpg', dict(modo='dia', az=az, el=el)))
 
-indice = dict(resolucion=[RX, RY], azimut_eje_y=AZ_Y, sol=[dict(az=az, el=el, archivo=f'sol_az{az:03d}_el{el:02d}.jpg') for az, el in rejilla],
-              luces=[dict(n=l['n'], entidad=l.get('entidad'), nombre=l['nombre'], habitacion=l['habitacion'], archivo=f"luz_{l['n']:02d}.jpg") for l in LUCES])
+# ---------- dónde cae cada cosa en la imagen (para iconos y zonas táctiles de la tarjeta) ----------
+from bpy_extras.object_utils import world_to_camera_view
+from mathutils import Vector
+def a_imagen(x, y, z):
+    v = world_to_camera_view(sc, sc.camera, Vector((x, y, z)))
+    return [round(v.x, 4), round(1 - v.y, 4)]  # 0..1 desde la esquina superior izquierda
+LAYOUT = json.loads(bpy.data.texts['layout.json'].as_string()) if 'layout.json' in bpy.data.texts else {'habitaciones': {}}
+habitaciones = {k: dict(nombre=h['nombre'], area=h.get('area_ha_id'),
+                        poligono=[a_imagen(px / 100, py / 100, 0.0) for px, py in h['poligono']],
+                        centro=a_imagen(sum(p[0] for p in h['poligono']) / len(h['poligono']) / 100,
+                                        sum(p[1] for p in h['poligono']) / len(h['poligono']) / 100, 0.9))
+                for k, h in LAYOUT['habitaciones'].items()}
+indice = dict(resolucion=[RX, RY], azimut_eje_y=AZ_Y, habitaciones=habitaciones, sol=[dict(az=az, el=el, archivo=f'sol_az{az:03d}_el{el:02d}.jpg') for az, el in rejilla],
+              luces=[dict(n=l['n'], entidad=l.get('entidad'), nombre=l['nombre'], habitacion=l['habitacion'], tipo=l['tipo'],
+                          icono=a_imagen(l['x'] / 100, l['y'] / 100, 1.0 if l['tipo'] in ('foco', 'techo', 'colgante') else min(l.get('z', 90), 120) / 100),
+                          archivo=f"luz_{l['n']:02d}.jpg") for l in LUCES])
 json.dump(indice, open(os.path.join(SALIDA, 'indice.json'), 'w'), indent=1, ensure_ascii=False)
 
 pendientes = [t for t in trabajos if not os.path.exists(os.path.join(SALIDA, t[0]))][:MAXIMO]
