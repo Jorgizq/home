@@ -16,7 +16,7 @@ for l in Lz:
                       ls='--' if l.get('seguro', True) is False else '-'))
 for t, c in col.items(): ax.plot([], [], 'o', color=c, label=t)
 ax.plot([], [], 'o', color='#8a8a8a', label='sin Home Assistant')
-ax.legend(loc='lower left', fontsize=11); ax.set_xticks([]); ax.set_yticks([])
+ax.legend(loc='lower right', fontsize=11); ax.set_xticks([]); ax.set_yticks([])
 ax.set_title('Puntos de luz · borde negro = por confirmar', fontsize=14)
 txt = '\n'.join(f"{l['n']:>2}  {l['entidad'] or '— ' + l['nombre']}" for l in Lz)
 ax.text(15, 470, txt, ha='left', va='top', family='monospace', fontsize=9, bbox=dict(fc='white', alpha=.9))

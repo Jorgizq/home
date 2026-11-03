@@ -26,8 +26,8 @@
    "nombre": "Sofá 1",
    "habitacion": "salon",
    "tipo": "foco",
-   "x": 545,
-   "y": 1010,
+   "x": 445,
+   "y": 1005,
    "z": 268,
    "entidad": "light.sofa_1"
   },
@@ -36,8 +36,8 @@
    "nombre": "Sofá 2",
    "habitacion": "salon",
    "tipo": "foco",
-   "x": 545,
-   "y": 1090,
+   "x": 505,
+   "y": 1005,
    "z": 268,
    "entidad": "light.sofa_2"
   },
@@ -46,8 +46,8 @@
    "nombre": "Sofá 3",
    "habitacion": "salon",
    "tipo": "foco",
-   "x": 545,
-   "y": 1170,
+   "x": 565,
+   "y": 1005,
    "z": 268,
    "entidad": "light.sofa_3"
   },
@@ -179,8 +179,8 @@
    "nombre": "Foco habitación 1",
    "habitacion": "dormitorio_principal",
    "tipo": "foco",
-   "x": 110,
-   "y": 1160,
+   "x": 250,
+   "y": 1040,
    "z": 268,
    "entidad": "light.foco_habitacion_1"
   },
@@ -189,8 +189,8 @@
    "nombre": "Foco habitación 2",
    "habitacion": "dormitorio_principal",
    "tipo": "foco",
-   "x": 180,
-   "y": 1160,
+   "x": 250,
+   "y": 1100,
    "z": 268,
    "entidad": "light.foco_habitacion_2"
   },
@@ -237,14 +237,12 @@
   {
    "n": 24,
    "nombre": "Luz pasillo",
-   "habitacion": "distribuidor",
+   "habitacion": "pasillo",
    "tipo": "techo",
-   "x": 273,
-   "y": 767,
-   "z": 265,
-   "entidad": "light.luz_pasillo",
-   "seguro": false,
-   "nota": "¿distribuidor o pasillo de la cocina?"
+   "x": 710,
+   "y": 255,
+   "z": 260,
+   "entidad": "light.luz_pasillo"
   },
   {
    "n": 25,
@@ -356,16 +354,6 @@
   },
   {
    "n": 33,
-   "nombre": "Luz del pasillo de la cocina",
-   "habitacion": "pasillo",
-   "tipo": "techo",
-   "x": 710,
-   "y": 255,
-   "z": 260,
-   "entidad": null
-  },
-  {
-   "n": 34,
    "nombre": "Lámpara de papel",
    "habitacion": "tendedero",
    "tipo": "colgante",

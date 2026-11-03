@@ -13,8 +13,8 @@
     'Dormitorio': ['light.mesilla_jorge', 'light.mesilla_marta', 'light.foco_habitacion_1', 'light.foco_habitacion_2',
                    'light.foco_habitacion_3', 'light.foco_habitacion_4', 'light.foco_habitacion_5'],
     'Dormitorio peque': ['light.zeppelin'],
-    'Distribuidor': ['light.luz_pasillo'],
-    'Baño grande': [], 'Baño pequeño': [], 'Cocina': [], 'Pasillo': [], 'Tendedero': [],
+    'Pasillo': ['light.luz_pasillo'],
+    'Distribuidor': [], 'Baño grande': [], 'Baño pequeño': [], 'Cocina': [], 'Tendedero': [],
   };
   const hass = document.querySelector('home-assistant').hass;
   const ws = (msg) => hass.callWS(msg);
