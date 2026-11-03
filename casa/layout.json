@@ -1,5 +1,5 @@
 {
- "nota": "Borrador 3. Unidades: cm. Origen: esquina inferior izquierda del escaneo enderezado (giro 24.6°). +Y = sur (fachada del salón), -Y = norte (patio), +X = oeste, -X = este (patio).",
+ "nota": "Borrador 4 (puertas, ventanas y armarios marcados por Jorge sobre la vista cenital). Unidades: cm. Origen: esquina inferior izquierda del escaneo enderezado (giro 24.6°). +Y = sur, -Y = norte (patio), +X = oeste, -X = este (patio).",
  "unidades": "cm",
  "altura_techo": 285,
  "grosor_muro_exterior": 30,
@@ -25,11 +25,19 @@
     ],
     [
      302,
-     1208
+     1215
+    ],
+    [
+     268,
+     1222
+    ],
+    [
+     105,
+     1308
     ],
     [
      5,
-     1208
+     1277
     ]
    ]
   },
@@ -41,16 +49,16 @@
      535
     ],
     [
-     230,
+     215,
      535
     ],
     [
-     230,
-     858
+     215,
+     860
     ],
     [
      10,
-     858
+     860
     ]
    ]
   },
@@ -58,19 +66,19 @@
    "nombre": "Distribuidor",
    "poligono": [
     [
-     230,
-     535
+     222,
+     662
     ],
     [
      325,
-     535
+     662
     ],
     [
      325,
      872
     ],
     [
-     230,
+     222,
      872
     ]
    ]
@@ -91,16 +99,20 @@
      1372
     ],
     [
-     145,
-     1350
+     200,
+     1372
     ],
     [
-     5,
-     1278
+     100,
+     1314
     ],
     [
-     5,
-     1212
+     268,
+     1224
+    ],
+    [
+     302,
+     1217
     ],
     [
      330,
@@ -142,19 +154,11 @@
     ],
     [
      880,
-     940
-    ],
-    [
-     760,
-     940
-    ],
-    [
-     760,
-     865
+     936
     ],
     [
      675,
-     865
+     936
     ]
    ]
   },
@@ -163,19 +167,19 @@
    "poligono": [
     [
      630,
-     1005
+     1006
     ],
     [
-     675,
-     1005
+     766,
+     1006
     ],
     [
-     675,
-     945
+     766,
+     940
     ],
     [
      862,
-     945
+     940
     ],
     [
      862,
@@ -191,27 +195,19 @@
    "nombre": "Baño (bañera)",
    "poligono": [
     [
-     325,
-     520
-    ],
-    [
-     450,
-     520
-    ],
-    [
-     450,
-     485
+     232,
+     487
     ],
     [
      565,
-     485
+     487
     ],
     [
      565,
      660
     ],
     [
-     325,
+     232,
      660
     ]
    ]
@@ -346,8 +342,8 @@
    ],
    "tipo": "puerta",
    "x": [
-    240,
-    320
+    247,
+    322
    ],
    "y": 875
   },
@@ -357,12 +353,23 @@
     "distribuidor"
    ],
    "tipo": "puerta",
-   "x": 230,
+   "x": 218,
    "y": [
-    600,
-    690
+    696,
+    767
+   ]
+  },
+  {
+   "entre": [
+    "bano_1",
+    "distribuidor"
    ],
-   "seguro": false
+   "tipo": "puerta",
+   "x": [
+    232,
+    304
+   ],
+   "y": 661
   },
   {
    "entre": [
@@ -375,19 +382,6 @@
     680,
     784
    ]
-  },
-  {
-   "entre": [
-    "bano_1",
-    "distribuidor"
-   ],
-   "tipo": "puerta",
-   "x": 325,
-   "y": [
-    550,
-    630
-   ],
-   "seguro": false
   },
   {
    "entre": [
@@ -420,23 +414,22 @@
    ],
    "tipo": "puerta",
    "x": [
-    768,
-    855
+    786,
+    859
    ],
-   "y": 942
+   "y": 938
   },
   {
    "entre": [
     "hall",
     "cocina"
    ],
-   "tipo": "hueco",
+   "tipo": "puerta",
    "x": [
-    690,
-    775
+    677,
+    770
    ],
-   "y": 645,
-   "alto": 215
+   "y": 647
   },
   {
    "entre": [
@@ -457,12 +450,13 @@
     "bano_2"
    ],
    "tipo": "puerta",
-   "x": 661,
+   "x": 663,
    "y": [
-    200,
-    280
+    256,
+    315
    ],
-   "seguro": false
+   "seguro": false,
+   "nota": "marcada en amarillo: confirmar"
   },
   {
    "entre": [
@@ -484,10 +478,10 @@
    "caja": [
     [
      10,
-     790
+     780
     ],
     [
-     200,
+     215,
      858
     ]
    ],
@@ -502,8 +496,8 @@
      880
     ],
     [
-     197,
-     942
+     190,
+     940
     ]
    ],
    "alto": 236
@@ -513,12 +507,12 @@
    "habitacion": "hall",
    "caja": [
     [
-     675,
-     865
+     683,
+     880
     ],
     [
-     760,
-     940
+     780,
+     935
     ]
    ],
    "alto": 200
@@ -528,12 +522,12 @@
    "habitacion": "despacho",
    "caja": [
     [
-     675,
-     945
+     605,
+     940
     ],
     [
-     760,
-     1005
+     766,
+     1006
     ]
    ],
    "alto": 260
@@ -544,11 +538,11 @@
    "caja": [
     [
      495,
-     485
+     490
     ],
     [
      560,
-     635
+     640
     ]
    ],
    "alto": 55
@@ -585,43 +579,61 @@
   }
  ],
  "dudas": [
-  "Puertas sin confirmar (discontinuas): segundo dormitorio, baño de la bañera, baño 2",
-  "Medidas de las ventanas del segundo dormitorio y del baño de la bañera (estimadas)",
+  "Puerta del baño 2: marcada en amarillo en el pasillo (x≈668, y 256-315); confirmar",
   "Orientación exacta: dirección o calle para calcular el sol"
  ],
  "ventanas": [
   {
    "habitacion": "salon",
-   "nombre": "Ventanal antigua terraza",
+   "nombre": "Ventanal antigua terraza (punta este)",
    "x": [
-    115,
-    605
+    100,
+    200
    ],
-   "y": 1372,
+   "y": [
+    1314,
+    1372
+   ],
    "desde": 65,
    "hasta": 285,
    "da_a": "sur"
   },
   {
-   "habitacion": "despacho",
-   "nombre": "Ventana despacho",
+   "habitacion": "salon",
+   "nombre": "Ventanal antigua terraza",
    "x": [
-    610,
-    712
+    200,
+    710
    ],
-   "y": 1365,
-   "desde": 95,
+   "y": 1372,
+   "desde": 65,
+   "hasta": 285,
+   "da_a": "sur",
+   "nota": "sigue sin pared hasta el despacho (x 605-710)"
+  },
+  {
+   "habitacion": "despacho",
+   "nombre": "Ventana del despacho a la antigua terraza",
+   "x": 605,
+   "y": [
+    1290,
+    1368
+   ],
+   "desde": 90,
    "hasta": 240,
-   "da_a": "sur"
+   "da_a": "salon"
   },
   {
    "habitacion": "dormitorio_principal",
-   "nombre": "Ventana a la antigua terraza (interior)",
+   "nombre": "Ventana a la antigua terraza",
    "x": [
     105,
-    262
+    268
    ],
-   "y": 1210,
+   "y": [
+    1308,
+    1222
+   ],
    "desde": 90,
    "hasta": 210,
    "da_a": "salon"
@@ -629,26 +641,24 @@
   {
    "habitacion": "dormitorio_2",
    "x": [
-    45,
-    165
+    79,
+    192
    ],
    "y": 535,
    "desde": 100,
    "hasta": 205,
-   "da_a": "patio (norte)",
-   "seguro": false
+   "da_a": "patio (norte)"
   },
   {
    "habitacion": "bano_1",
    "x": [
-    360,
-    420
+    367,
+    415
    ],
-   "y": 520,
+   "y": 487,
    "desde": 100,
    "hasta": 160,
-   "da_a": "patio (norte)",
-   "seguro": false
+   "da_a": "patio (norte)"
   },
   {
    "habitacion": "cocina",
@@ -666,8 +676,8 @@
    "nombre": "Ventana de la ducha",
    "x": 466,
    "y": [
-    225,
-    255
+    210,
+    250
    ],
    "desde": 95,
    "hasta": 190,
@@ -677,7 +687,7 @@
    "habitacion": "tendedero",
    "x": 480,
    "y": [
-    75,
+    60,
     150
    ],
    "desde": 80,
