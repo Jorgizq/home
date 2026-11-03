@@ -79,8 +79,7 @@
    "x": 862,
    "y": 790,
    "z": 115,
-   "entidad": "light.hall",
-   "seguro": false
+   "entidad": "light.hall"
   },
   {
    "n": 9,
@@ -160,8 +159,7 @@
    "x": 27,
    "y": 983,
    "z": 80,
-   "entidad": "light.mesilla_jorge",
-   "seguro": false
+   "entidad": "light.mesilla_jorge"
   },
   {
    "n": 17,
@@ -171,8 +169,7 @@
    "x": 27,
    "y": 1221,
    "z": 80,
-   "entidad": "light.mesilla_marta",
-   "seguro": false
+   "entidad": "light.mesilla_marta"
   },
   {
    "n": 18,

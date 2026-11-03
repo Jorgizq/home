@@ -21,6 +21,9 @@ ap.add_argument('--corte', type=float, default=1.40)
 ap.add_argument('--res', default='1600x1200')
 ap.add_argument('--sol', default='200,40', help='azimut,elevación del sol (grados)')
 ap.add_argument('--inclinacion', type=float, default=None, help='grados desde la vertical (0 = planta); por defecto el de layout.json')
+ap.add_argument('--noche', action='store_true', help='sin sol: solo luna y las luces elegidas')
+ap.add_argument('--luces', default='ninguna', help="'todas', 'ninguna' o lista separada por comas de números o entidades de luces.json")
+ap.add_argument('--techo', action='store_true', help='techo y muros completos invisibles a la cámara (siempre en --noche)')
 ap.add_argument('--camara', type=float, default=None,
                 help='lado de la cámara: ángulo en el plano (0 = oeste, 90 = sur); por defecto el de layout.json')
 a = ap.parse_args()
@@ -208,17 +211,56 @@ def mueble(i, mb):
 for i, mb in enumerate(L.get('muebles', [])):
     mueble(i, mb)
 
+# ---------- techo y parte alta de los muros: invisibles a la cámara, pero frenan la luz ----------
+# (si no, la luz de una habitación se escapa por encima de los muros cortados a las de al lado)
+TECHO = L.get('altura_techo', 285) * M
+if a.techo or a.noche:
+    cortes_alto = sorted({CORTE, TECHO} | {z for _, d, h in huecos for z in (d, h) if CORTE < z < TECHO})
+    for i, (z0, z1) in enumerate(zip(cortes_alto[:-1], cortes_alto[1:])):
+        quitar = unary_union([g for g, d, h in huecos if d <= z0 + 1e-6 and h >= z1 - 1e-6] or [Polygon()])
+        ob = extruir(muros2d.difference(quitar), z0, z1, f'muro_alto_{i}', MAT['muro'])
+        if ob: ob.visible_camera = False
+    ob = extruir(huella, TECHO, TECHO + 0.05, 'techo', MAT['muro'])
+    if ob: ob.visible_camera = False
+
+# ---------- luces de la casa (casa/luces.json) ----------
+import os
+ruta_luces = os.path.join(os.path.dirname(os.path.abspath(a.layout)), 'luces.json')
+LZ = json.load(open(ruta_luces))['luces'] if os.path.exists(ruta_luces) else []
+if a.luces == 'todas': elegidas = LZ
+elif a.luces == 'ninguna': elegidas = []
+else:
+    pedir = {t.strip() for t in a.luces.split(',')}
+    elegidas = [l for l in LZ if str(l['n']) in pedir or (l.get('entidad') or '') in pedir]
+CALIDA = (1.0, 0.70, 0.42)  # ~2700 K
+TIPOS = {  # tipo → (clase de luz, potencia W, radio m)
+    'foco': ('SPOT', 9, 0.03), 'colgante': ('POINT', 30, 0.12), 'mesa': ('POINT', 14, 0.08),
+    'techo': ('POINT', 40, 0.15), 'aplique': ('POINT', 10, 0.05)}
+for l in elegidas:
+    clase, pot, rad = TIPOS.get(l['tipo'], ('POINT', 20, 0.1))
+    for j, (px, py) in enumerate(l.get('puntos') or [(l['x'], l['y'])]):
+        ld = bpy.data.lights.new(f"luz_{l['n']}_{j}", clase); ld.energy = pot; ld.color = CALIDA
+        ld.shadow_soft_size = rad
+        if clase == 'SPOT': ld.spot_size = math.radians(80); ld.spot_blend = 0.6
+        lo_ = bpy.data.objects.new(ld.name, ld); sc.collection.objects.link(lo_)
+        lo_.location = (px * M, py * M, min(l.get('z', 250) * M, TECHO - 0.03))
+
 # ---------- sol (azimut real) y cielo ----------
 azY = L.get('orientacion', {}).get('azimut_eje_+Y', 180.0)
 s_az, s_el = map(float, a.sol.split(','))
 ang = math.radians(s_az - azY)  # ángulo en el plano, horario desde +Y
 hacia_sol = Vector((math.sin(ang) * math.cos(math.radians(s_el)), math.cos(ang) * math.cos(math.radians(s_el)), math.sin(math.radians(s_el))))
 sun = bpy.data.lights.new('sol', 'SUN'); sun.energy = 3.2; sun.angle = math.radians(1.5)
+if a.noche:  # luz de luna: débil y azulada
+    sun.energy = 0.12; sun.color = (0.62, 0.72, 1.0)
 so = bpy.data.objects.new('sol', sun); sc.collection.objects.link(so)
 so.rotation_euler = hacia_sol.to_track_quat('Z', 'Y').to_euler()
 w = bpy.data.worlds.new('cielo'); sc.world = w; w.use_nodes = True
 w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.75, 0.82, 0.95, 1)
 w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.45
+if a.noche:
+    w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.05, 0.07, 0.16, 1)
+    w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.12
 
 # ---------- cámara de diorama: 30° desde la vertical, girada 25° ----------
 minx, miny, maxx, maxy = huella.bounds
