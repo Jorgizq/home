@@ -602,59 +602,6 @@
    "frente": "y-"
   },
   {
-   "nombre": "Cama Montessori",
-   "habitacion": "dormitorio_2",
-   "tipo": "cama",
-   "caja": [
-    [
-     30,
-     545
-    ],
-    [
-     165,
-     615
-    ]
-   ],
-   "alto": 30,
-   "cabecero": "y-",
-   "color": "#f4f2ee",
-   "color2": "#d2b48c"
-  },
-  {
-   "nombre": "Estantería de cubos",
-   "habitacion": "dormitorio_2",
-   "tipo": "caja",
-   "caja": [
-    [
-     170,
-     545
-    ],
-    [
-     212,
-     620
-    ]
-   ],
-   "alto": 100,
-   "color": "#f2efe9"
-  },
-  {
-   "nombre": "Cómoda",
-   "habitacion": "dormitorio_2",
-   "tipo": "caja",
-   "caja": [
-    [
-     12,
-     640
-    ],
-    [
-     60,
-     740
-    ]
-   ],
-   "alto": 90,
-   "color": "#f2f0ec"
-  },
-  {
    "nombre": "Alfombra",
    "habitacion": "salon",
    "tipo": "alfombra",
@@ -1333,6 +1280,127 @@
    ],
    "alto": 90,
    "color": "#c8c8c8"
+  },
+  {
+   "nombre": "Estantería oscura junto a la ventana",
+   "habitacion": "dormitorio_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     12,
+     537
+    ],
+    [
+     72,
+     567
+    ]
+   ],
+   "alto": 200,
+   "color": "#4a2416"
+  },
+  {
+   "nombre": "Mueble bajo la ventana",
+   "habitacion": "dormitorio_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     72,
+     537
+    ],
+    [
+     212,
+     565
+    ]
+   ],
+   "alto": 75,
+   "color": "#4a2416"
+  },
+  {
+   "nombre": "Cama Montessori",
+   "habitacion": "dormitorio_2",
+   "tipo": "cama",
+   "caja": [
+    [
+     12,
+     570
+    ],
+    [
+     87,
+     698
+    ]
+   ],
+   "alto": 32,
+   "cabecero": "y-",
+   "color": "#f1ece4",
+   "color2": "#d9bf98"
+  },
+  {
+   "nombre": "Estantería de cubos",
+   "habitacion": "dormitorio_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     12,
+     702
+    ],
+    [
+     47,
+     780
+    ]
+   ],
+   "alto": 100,
+   "color": "#d9bf98"
+  },
+  {
+   "nombre": "Cómoda cambiador",
+   "habitacion": "dormitorio_2",
+   "tipo": "caja",
+   "caja": [
+    [
+     100,
+     568
+    ],
+    [
+     185,
+     616
+    ]
+   ],
+   "alto": 95,
+   "color": "#f2f0ec"
+  },
+  {
+   "nombre": "Alfombra",
+   "habitacion": "dormitorio_2",
+   "tipo": "alfombra",
+   "caja": [
+    [
+     52,
+     600
+    ],
+    [
+     200,
+     700
+    ]
+   ],
+   "color": "#cfc6b8"
+  },
+  {
+   "nombre": "Butaquita",
+   "habitacion": "dormitorio_2",
+   "tipo": "sofa",
+   "caja": [
+    [
+     150,
+     640
+    ],
+    [
+     195,
+     686
+    ]
+   ],
+   "alto": 45,
+   "respaldo": "y+",
+   "color": "#e3cdb3"
   }
  ],
  "dudas": [],
