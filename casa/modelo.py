@@ -18,7 +18,7 @@ ap.add_argument('--blend'); ap.add_argument('--muestras', type=int, default=48)
 ap.add_argument('--corte', type=float, default=1.40)
 ap.add_argument('--res', default='1600x1200')
 ap.add_argument('--sol', default='200,40', help='azimut,elevación del sol (grados)')
-ap.add_argument('--camara', type=float, default=-25, help='lado desde el que mira la cámara: ángulo en el plano (0 = oeste, 90 = sur), ya con el giro de 25°')
+ap.add_argument('--camara', type=float, default=None, help='lado desde el que mira la cámara: ángulo en el plano (0 = oeste, 90 = sur), ya con el giro de 25°')
 a = ap.parse_args()
 L = json.load(open(a.layout)); CORTE = a.corte; M = 0.01  # cm → m
 EXT = 0.18  # grosor de los muros exteriores (m)
@@ -118,7 +118,8 @@ w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.45
 # ---------- cámara de diorama: 30° desde la vertical, girada 25° ----------
 minx, miny, maxx, maxy = huella.bounds
 c = Vector(((minx + maxx) / 2, (miny + maxy) / 2, 0.3))
-t, r = math.radians(30), math.radians(a.camara)
+t = math.radians(L.get('camara', {}).get('inclinacion_desde_vertical', 30))
+r = math.radians(a.camara if a.camara is not None else L.get('camara', {}).get('lado', -25))
 hdir = Vector((math.cos(r), math.sin(r), 0))  # -25 = desde el oeste; 65 = desde el sur (ventanal abajo)
 cam = bpy.data.cameras.new('cam'); cam.lens = 85; co = bpy.data.objects.new('cam', cam); sc.collection.objects.link(co)
 D = 42.0

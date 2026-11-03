@@ -249,11 +249,11 @@
      185
     ],
     [
-     760,
+     810,
      185
     ],
     [
-     760,
+     810,
      325
     ],
     [
@@ -299,11 +299,11 @@
      20
     ],
     [
-     760,
+     810,
      20
     ],
     [
-     760,
+     810,
      180
     ],
     [
@@ -566,6 +566,37 @@
     ]
    ],
    "alto": 75
+  },
+  {
+   "nombre": "Armario empotrado (pasillo)",
+   "habitacion": "pasillo",
+   "caja": [
+    [
+     760,
+     185
+    ],
+    [
+     810,
+     325
+    ]
+   ],
+   "alto": 260,
+   "nota": "frente a x≈760; la pared real sigue recta en x≈810"
+  },
+  {
+   "nombre": "Armario empotrado / despensa (tendedero)",
+   "habitacion": "tendedero",
+   "caja": [
+    [
+     760,
+     20
+    ],
+    [
+     810,
+     180
+    ]
+   ],
+   "alto": 260
   }
  ],
  "dudas": [],
@@ -692,5 +723,11 @@
  "exterior": {
   "sur": "fachada principal (ventanal de la antigua terraza)",
   "norte_y_este": "patio interior"
+ },
+ "camara": {
+  "lado": -25,
+  "inclinacion_desde_vertical": 30,
+  "giro": 25,
+  "nota": "Elegida por Jorge: vista desde el oeste (hall abajo, ventanal a la derecha). FIJA: no cambiar o hay que rehacer todos los renders."
  }
 }
