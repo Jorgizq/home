@@ -42,7 +42,8 @@
    ],
    "suelo": "parquet",
    "paredes": "crema",
-   "area_ha": "Dormitorio principal"
+   "area_ha": "Dormitorio principal",
+   "area_ha_id": "dormitorio"
   },
   "dormitorio_2": {
    "nombre": "Segundo dormitorio",
@@ -66,7 +67,8 @@
    ],
    "suelo": "parquet",
    "paredes": "crema",
-   "area_ha": "Segundo dormitorio"
+   "area_ha": "Segundo dormitorio",
+   "area_ha_id": "segundo_dormitorio"
   },
   "distribuidor": {
    "nombre": "Distribuidor",
@@ -90,7 +92,8 @@
    ],
    "suelo": "parquet",
    "paredes": "crema",
-   "area_ha": "Distribuidor"
+   "area_ha": "Distribuidor",
+   "area_ha_id": "distribuidor"
   },
   "salon": {
    "nombre": "Salón",
@@ -137,7 +140,8 @@
      "paredes": "madera_oscura"
     }
    ],
-   "area_ha": "Salón"
+   "area_ha": "Salón",
+   "area_ha_id": "salon"
   },
   "comedor": {
    "nombre": "Comedor",
@@ -161,7 +165,8 @@
    ],
    "suelo": "parquet",
    "paredes": "crema",
-   "area_ha": "Comedor"
+   "area_ha": "Comedor",
+   "area_ha_id": "comedor"
   },
   "hall": {
    "nombre": "Hall",
@@ -185,7 +190,8 @@
    ],
    "suelo": "parquet",
    "paredes": "crema",
-   "area_ha": "Hall"
+   "area_ha": "Hall",
+   "area_ha_id": "hall"
   },
   "despacho": {
    "nombre": "Despacho",
@@ -209,7 +215,8 @@
    ],
    "suelo": "parquet",
    "paredes": "crema",
-   "area_ha": "Despacho"
+   "area_ha": "Despacho",
+   "area_ha_id": "despacho"
   },
   "bano_1": {
    "nombre": "Baño (bañera)",
@@ -233,7 +240,8 @@
    ],
    "suelo": "baldosa_beige",
    "paredes": "azulejo_beige",
-   "area_ha": "Baño grande"
+   "area_ha": "Baño grande",
+   "area_ha_id": "bano_grande"
   },
   "cocina": {
    "nombre": "Cocina",
@@ -273,7 +281,8 @@
    ],
    "suelo": "barro",
    "paredes": "azulejo_cocina",
-   "area_ha": "Cocina"
+   "area_ha": "Cocina",
+   "area_ha_id": "cocina"
   },
   "pasillo": {
    "nombre": "Pasillo",
@@ -297,7 +306,8 @@
    ],
    "suelo": "barro",
    "paredes": "crema",
-   "area_ha": "Pasillo"
+   "area_ha": "Pasillo",
+   "area_ha_id": "pasillo"
   },
   "bano_2": {
    "nombre": "Baño 2",
@@ -329,7 +339,8 @@
    ],
    "suelo": "baldosa_beige",
    "paredes": "azulejo_beige",
-   "area_ha": "Baño pequeño"
+   "area_ha": "Baño pequeño",
+   "area_ha_id": "bano_pequeno"
   },
   "tendedero": {
    "nombre": "Tendedero",
@@ -353,7 +364,8 @@
    ],
    "suelo": "barro",
    "paredes": "crema",
-   "area_ha": "Tendedero"
+   "area_ha": "Tendedero",
+   "area_ha_id": "tendedero"
   }
  },
  "aberturas": [
