@@ -1,0 +1,566 @@
+{
+ "nota": "Borrador 1 trazado sobre el escaneo LiDAR. Unidades: cm. Origen: esquina inferior izquierda del escaneo enderezado (giro 24.6°). Y crece hacia arriba en el plano.",
+ "unidades": "cm",
+ "altura_techo": 285,
+ "grosor_muro_exterior": 30,
+ "habitaciones": {
+  "dormitorio_principal": {
+   "nombre": "Dormitorio principal",
+   "poligono": [
+    [
+     5,
+     940
+    ],
+    [
+     302,
+     940
+    ],
+    [
+     302,
+     1208
+    ],
+    [
+     5,
+     1208
+    ]
+   ]
+  },
+  "dormitorio_2": {
+   "nombre": "Segundo dormitorio",
+   "poligono": [
+    [
+     10,
+     535
+    ],
+    [
+     230,
+     535
+    ],
+    [
+     230,
+     878
+    ],
+    [
+     197,
+     878
+    ],
+    [
+     197,
+     935
+    ],
+    [
+     10,
+     935
+    ]
+   ]
+  },
+  "distribuidor": {
+   "nombre": "Distribuidor",
+   "poligono": [
+    [
+     230,
+     535
+    ],
+    [
+     325,
+     535
+    ],
+    [
+     325,
+     945
+    ],
+    [
+     200,
+     945
+    ],
+    [
+     200,
+     878
+    ],
+    [
+     230,
+     878
+    ]
+   ]
+  },
+  "salon": {
+   "nombre": "Salón",
+   "poligono": [
+    [
+     330,
+     950
+    ],
+    [
+     605,
+     950
+    ],
+    [
+     605,
+     1372
+    ],
+    [
+     145,
+     1350
+    ],
+    [
+     5,
+     1278
+    ],
+    [
+     5,
+     1212
+    ],
+    [
+     330,
+     1212
+    ]
+   ]
+  },
+  "comedor": {
+   "nombre": "Comedor",
+   "poligono": [
+    [
+     330,
+     675
+    ],
+    [
+     675,
+     675
+    ],
+    [
+     675,
+     645
+    ],
+    [
+     880,
+     645
+    ],
+    [
+     880,
+     945
+    ],
+    [
+     760,
+     945
+    ],
+    [
+     760,
+     865
+    ],
+    [
+     675,
+     865
+    ],
+    [
+     675,
+     945
+    ],
+    [
+     330,
+     945
+    ]
+   ]
+  },
+  "despacho": {
+   "nombre": "Despacho",
+   "poligono": [
+    [
+     630,
+     1005
+    ],
+    [
+     862,
+     1005
+    ],
+    [
+     862,
+     1362
+    ],
+    [
+     630,
+     1362
+    ]
+   ]
+  },
+  "bano_1": {
+   "nombre": "Baño (bañera)",
+   "poligono": [
+    [
+     325,
+     520
+    ],
+    [
+     450,
+     520
+    ],
+    [
+     450,
+     485
+    ],
+    [
+     565,
+     485
+    ],
+    [
+     565,
+     660
+    ],
+    [
+     325,
+     660
+    ]
+   ]
+  },
+  "cocina": {
+   "nombre": "Cocina",
+   "poligono": [
+    [
+     450,
+     342
+    ],
+    [
+     810,
+     342
+    ],
+    [
+     810,
+     485
+    ],
+    [
+     775,
+     485
+    ],
+    [
+     775,
+     645
+    ],
+    [
+     590,
+     645
+    ],
+    [
+     590,
+     482
+    ],
+    [
+     450,
+     482
+    ]
+   ]
+  },
+  "pasillo": {
+   "nombre": "Pasillo",
+   "poligono": [
+    [
+     662,
+     185
+    ],
+    [
+     760,
+     185
+    ],
+    [
+     760,
+     325
+    ],
+    [
+     662,
+     325
+    ]
+   ]
+  },
+  "bano_2": {
+   "nombre": "Baño 2",
+   "poligono": [
+    [
+     466,
+     189
+    ],
+    [
+     660,
+     189
+    ],
+    [
+     660,
+     323
+    ],
+    [
+     523,
+     323
+    ],
+    [
+     523,
+     278
+    ],
+    [
+     466,
+     278
+    ]
+   ]
+  },
+  "tendedero": {
+   "nombre": "Tendedero",
+   "poligono": [
+    [
+     480,
+     20
+    ],
+    [
+     760,
+     20
+    ],
+    [
+     760,
+     180
+    ],
+    [
+     480,
+     180
+    ]
+   ]
+  }
+ },
+ "aberturas": [
+  {
+   "entre": [
+    "dormitorio_principal",
+    "distribuidor"
+   ],
+   "tipo": "puerta",
+   "x": [
+    205,
+    295
+   ],
+   "y": 943,
+   "seguro": false
+  },
+  {
+   "entre": [
+    "dormitorio_2",
+    "distribuidor"
+   ],
+   "tipo": "puerta",
+   "x": 230,
+   "y": [
+    600,
+    690
+   ],
+   "seguro": false
+  },
+  {
+   "entre": [
+    "distribuidor",
+    "comedor"
+   ],
+   "tipo": "hueco",
+   "x": 328,
+   "y": [
+    680,
+    784
+   ],
+   "seguro": false
+  },
+  {
+   "entre": [
+    "bano_1",
+    "distribuidor"
+   ],
+   "tipo": "puerta",
+   "x": 325,
+   "y": [
+    550,
+    630
+   ],
+   "seguro": false
+  },
+  {
+   "entre": [
+    "salon",
+    "comedor"
+   ],
+   "tipo": "abierto",
+   "x": [
+    330,
+    590
+   ],
+   "y": 948
+  },
+  {
+   "entre": [
+    "salon",
+    "dormitorio_principal"
+   ],
+   "tipo": "ventana_o_puerta",
+   "x": [
+    105,
+    262
+   ],
+   "y": 1210,
+   "seguro": false
+  },
+  {
+   "entre": [
+    "despacho",
+    "comedor"
+   ],
+   "tipo": "puerta",
+   "x": [
+    770,
+    855
+   ],
+   "y": 1005,
+   "seguro": false
+  },
+  {
+   "entre": [
+    "comedor",
+    "cocina"
+   ],
+   "tipo": "hueco",
+   "x": [
+    676,
+    764
+   ],
+   "y": 645
+  },
+  {
+   "entre": [
+    "cocina",
+    "pasillo"
+   ],
+   "tipo": "puerta",
+   "x": [
+    676,
+    755
+   ],
+   "y": 334,
+   "abre_hacia": "pasillo"
+  },
+  {
+   "entre": [
+    "pasillo",
+    "bano_2"
+   ],
+   "tipo": "puerta",
+   "x": 661,
+   "y": [
+    200,
+    280
+   ],
+   "seguro": false
+  },
+  {
+   "entre": [
+    "pasillo",
+    "tendedero"
+   ],
+   "tipo": "hueco",
+   "x": [
+    662,
+    760
+   ],
+   "y": 183
+  }
+ ],
+ "muebles": [
+  {
+   "nombre": "Armario IKEA",
+   "habitacion": "dormitorio_2",
+   "caja": [
+    [
+     10,
+     785
+    ],
+    [
+     200,
+     935
+    ]
+   ],
+   "alto": 236,
+   "nota": "Frente del armario a y≈785; detrás no hay escaneo (1,5 m de fondo): confirmar medidas reales"
+  },
+  {
+   "nombre": "Bañera",
+   "habitacion": "bano_1",
+   "caja": [
+    [
+     495,
+     485
+    ],
+    [
+     560,
+     635
+    ]
+   ],
+   "alto": 55
+  },
+  {
+   "nombre": "Sofá",
+   "habitacion": "salon",
+   "caja": [
+    [
+     500,
+     955
+    ],
+    [
+     590,
+     1190
+    ]
+   ],
+   "alto": 85
+  }
+ ],
+ "dudas": [
+  "Elemento alto sin escanear en comedor (x 675-760, y 865-1005): ¿pilar, chimenea, entrada?",
+  "Puerta de entrada a la vivienda: ¿dónde está?",
+  "Línea diagonal larga entre dormitorio_2 y distribuidor (≈150 cm): ¿puerta corredera, dos hojas, cortina?",
+  "Ventanas: detectadas solo de forma aproximada (cristal y cortinas confunden al LiDAR); confirmar cuáles hay en cada habitación"
+ ],
+ "ventanas": [
+  {
+   "habitacion": "salon",
+   "x": [
+    290,
+    480
+   ],
+   "y": 1370,
+   "seguro": false
+  },
+  {
+   "habitacion": "dormitorio_2",
+   "x": 8,
+   "y": [
+    600,
+    790
+   ],
+   "seguro": false
+  },
+  {
+   "habitacion": "comedor",
+   "x": 880,
+   "y": [
+    720,
+    860
+   ],
+   "seguro": false
+  },
+  {
+   "habitacion": "despacho",
+   "x": 862,
+   "y": [
+    1250,
+    1335
+   ],
+   "seguro": false
+  },
+  {
+   "habitacion": "bano_1",
+   "x": [
+    342,
+    450
+   ],
+   "y": 520,
+   "seguro": false
+  }
+ ]
+}
