@@ -1,5 +1,5 @@
 {
- "nota": "Borrador 1 trazado sobre el escaneo LiDAR. Unidades: cm. Origen: esquina inferior izquierda del escaneo enderezado (giro 24.6°). Y crece hacia arriba en el plano.",
+ "nota": "Borrador 2. Unidades: cm. Origen: esquina inferior izquierda del escaneo enderezado (giro 24.6°). +Y = sur (fachada del salón), -Y = norte, +X = oeste.",
  "unidades": "cm",
  "altura_techo": 285,
  "grosor_muro_exterior": 30,
@@ -9,11 +9,19 @@
    "poligono": [
     [
      5,
-     940
+     878
+    ],
+    [
+     325,
+     878
+    ],
+    [
+     325,
+     945
     ],
     [
      302,
-     940
+     945
     ],
     [
      302,
@@ -38,19 +46,11 @@
     ],
     [
      230,
-     878
-    ],
-    [
-     197,
-     878
-    ],
-    [
-     197,
-     935
+     858
     ],
     [
      10,
-     935
+     858
     ]
    ]
   },
@@ -67,19 +67,11 @@
     ],
     [
      325,
-     945
-    ],
-    [
-     200,
-     945
-    ],
-    [
-     200,
-     878
+     872
     ],
     [
      230,
-     878
+     872
     ]
    ]
   },
@@ -129,35 +121,40 @@
     ],
     [
      675,
-     645
-    ],
-    [
-     880,
-     645
-    ],
-    [
-     880,
-     945
-    ],
-    [
-     760,
-     945
-    ],
-    [
-     760,
-     865
-    ],
-    [
-     675,
-     865
-    ],
-    [
-     675,
      945
     ],
     [
      330,
      945
+    ]
+   ]
+  },
+  "hall": {
+   "nombre": "Hall",
+   "poligono": [
+    [
+     675,
+     645
+    ],
+    [
+     880,
+     645
+    ],
+    [
+     880,
+     940
+    ],
+    [
+     760,
+     940
+    ],
+    [
+     760,
+     865
+    ],
+    [
+     675,
+     865
     ]
    ]
   },
@@ -169,8 +166,16 @@
      1005
     ],
     [
-     862,
+     675,
      1005
+    ],
+    [
+     675,
+     945
+    ],
+    [
+     862,
+     945
     ],
     [
      862,
@@ -323,16 +328,28 @@
  "aberturas": [
   {
    "entre": [
+    "hall",
+    "exterior"
+   ],
+   "tipo": "puerta_entrada",
+   "x": [
+    790,
+    870
+   ],
+   "y": 645,
+   "alto": 212
+  },
+  {
+   "entre": [
     "dormitorio_principal",
     "distribuidor"
    ],
    "tipo": "puerta",
    "x": [
-    205,
-    295
+    240,
+    320
    ],
-   "y": 943,
-   "seguro": false
+   "y": 875
   },
   {
    "entre": [
@@ -357,8 +374,7 @@
    "y": [
     680,
     784
-   ],
-   "seguro": false
+   ]
   },
   {
    "entre": [
@@ -387,41 +403,40 @@
   },
   {
    "entre": [
-    "salon",
-    "dormitorio_principal"
+    "comedor",
+    "hall"
    ],
-   "tipo": "ventana_o_puerta",
-   "x": [
-    105,
-    262
-   ],
-   "y": 1210,
-   "seguro": false
+   "tipo": "abierto",
+   "x": 675,
+   "y": [
+    690,
+    865
+   ]
   },
   {
    "entre": [
     "despacho",
-    "comedor"
+    "hall"
    ],
    "tipo": "puerta",
    "x": [
-    770,
+    768,
     855
    ],
-   "y": 1005,
-   "seguro": false
+   "y": 942
   },
   {
    "entre": [
-    "comedor",
+    "hall",
     "cocina"
    ],
    "tipo": "hueco",
    "x": [
-    676,
-    764
+    690,
+    775
    ],
-   "y": 645
+   "y": 645,
+   "alto": 215
   },
   {
    "entre": [
@@ -464,20 +479,64 @@
  ],
  "muebles": [
   {
-   "nombre": "Armario IKEA",
+   "nombre": "Armario IKEA (dormitorio 2)",
    "habitacion": "dormitorio_2",
    "caja": [
     [
      10,
-     785
+     790
     ],
     [
      200,
-     935
+     858
     ]
    ],
-   "alto": 236,
-   "nota": "Frente del armario a y≈785; detrás no hay escaneo (1,5 m de fondo): confirmar medidas reales"
+   "alto": 236
+  },
+  {
+   "nombre": "Armario IKEA (dormitorio principal)",
+   "habitacion": "dormitorio_principal",
+   "caja": [
+    [
+     5,
+     880
+    ],
+    [
+     197,
+     942
+    ]
+   ],
+   "alto": 236
+  },
+  {
+   "nombre": "Armario de madera (hall)",
+   "habitacion": "hall",
+   "caja": [
+    [
+     675,
+     865
+    ],
+    [
+     760,
+     940
+    ]
+   ],
+   "alto": 200
+  },
+  {
+   "nombre": "Armario empotrado (despacho)",
+   "habitacion": "despacho",
+   "caja": [
+    [
+     675,
+     945
+    ],
+    [
+     760,
+     1005
+    ]
+   ],
+   "alto": 260
   },
   {
    "nombre": "Bañera",
@@ -508,22 +567,70 @@
     ]
    ],
    "alto": 85
+  },
+  {
+   "nombre": "Mesa de comedor",
+   "habitacion": "comedor",
+   "caja": [
+    [
+     440,
+     760
+    ],
+    [
+     565,
+     830
+    ]
+   ],
+   "alto": 75
   }
  ],
  "dudas": [
-  "Elemento alto sin escanear en comedor (x 675-760, y 865-1005): ¿pilar, chimenea, entrada?",
-  "Puerta de entrada a la vivienda: ¿dónde está?",
-  "Línea diagonal larga entre dormitorio_2 y distribuidor (≈150 cm): ¿puerta corredera, dos hojas, cortina?",
-  "Ventanas: detectadas solo de forma aproximada (cristal y cortinas confunden al LiDAR); confirmar cuáles hay en cada habitación"
+  "Puertas sin confirmar (discontinuas): segundo dormitorio, baño de la bañera, baño 2",
+  "Ventanas sin confirmar: despacho pared oeste, segundo dormitorio, baño de la bañera; ¿cocina, baño 2, tendedero, dormitorio principal (fachada este)?",
+  "Orientación exacta: dirección o calle para calcular el sol"
  ],
  "ventanas": [
   {
    "habitacion": "salon",
+   "nombre": "Ventanal antigua terraza",
    "x": [
-    290,
-    480
+    115,
+    560
    ],
-   "y": 1370,
+   "y": 1372,
+   "desde": 65,
+   "hasta": 285
+  },
+  {
+   "habitacion": "despacho",
+   "x": [
+    632,
+    712
+   ],
+   "y": 1362,
+   "desde": 95,
+   "hasta": 240
+  },
+  {
+   "habitacion": "dormitorio_principal",
+   "nombre": "Ventana a la antigua terraza (interior)",
+   "x": [
+    105,
+    262
+   ],
+   "y": 1210,
+   "desde": 90,
+   "hasta": 210
+  },
+  {
+   "habitacion": "despacho",
+   "x": 862,
+   "y": [
+    1185,
+    1255
+   ],
+   "desde": 110,
+   "hasta": 250,
    "seguro": false
   },
   {
@@ -536,24 +643,6 @@
    "seguro": false
   },
   {
-   "habitacion": "comedor",
-   "x": 880,
-   "y": [
-    720,
-    860
-   ],
-   "seguro": false
-  },
-  {
-   "habitacion": "despacho",
-   "x": 862,
-   "y": [
-    1250,
-    1335
-   ],
-   "seguro": false
-  },
-  {
    "habitacion": "bano_1",
    "x": [
     342,
@@ -562,5 +651,11 @@
    "y": 520,
    "seguro": false
   }
- ]
+ ],
+ "orientacion": {
+  "fachada_salon": "sur",
+  "eje_+Y": "sur",
+  "eje_+X": "oeste",
+  "nota": "aproximada; afinar con la dirección"
+ }
 }

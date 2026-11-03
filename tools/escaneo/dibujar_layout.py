@@ -14,7 +14,7 @@ for i, (k, h) in enumerate(L['habitaciones'].items()):
 for a in L['aberturas']:
     x, y = a['x'], a['y']
     xs = x if isinstance(x, list) else [x, x]; ys = y if isinstance(y, list) else [y, y]
-    c = {'puerta': 'tab:red', 'hueco': 'tab:green', 'abierto': 'tab:green'}.get(a['tipo'], 'tab:purple')
+    c = {'puerta': 'tab:red', 'puerta_entrada': 'black', 'hueco': 'tab:green', 'abierto': 'tab:green'}.get(a['tipo'], 'tab:purple')
     ax.plot(xs, ys, color=c, lw=6, alpha=.9, solid_capstyle='butt',
             ls='-' if a.get('seguro', True) else (0, (2, 1)))
 for mb in L.get('muebles', []):
@@ -24,5 +24,6 @@ for w in L.get('ventanas', []):
     ax.plot(xs, ys, color='tab:blue', lw=7, solid_capstyle='butt', ls='-' if w.get('seguro', True) else (0, (2, 1)))
 ax.set_xlim(-30, ext[1]); ax.set_ylim(-30, ext[3]); ax.set_aspect('equal')
 ax.set_xticks(np.arange(0, ext[1], 100)); ax.set_yticks(np.arange(0, ext[3], 100)); ax.grid(alpha=.25)
-ax.set_title('Borrador del plano (cm). Rojo: puertas · Verde: huecos · Azul: ventanas · Discontinuo: por confirmar')
+ax.annotate('SUR', (0.5, 0.995), xycoords='axes fraction', ha='center', va='top', fontsize=12, weight='bold')
+ax.set_title('Borrador del plano (cm). Negro: entrada · Rojo: puertas · Verde: huecos · Azul: ventanas · Discontinuo: por confirmar')
 plt.tight_layout(); plt.savefig(out, dpi=70)
