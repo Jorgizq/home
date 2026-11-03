@@ -18,6 +18,7 @@ ap.add_argument('--blend'); ap.add_argument('--muestras', type=int, default=48)
 ap.add_argument('--corte', type=float, default=1.40)
 ap.add_argument('--res', default='1600x1200')
 ap.add_argument('--sol', default='200,40', help='azimut,elevación del sol (grados)')
+ap.add_argument('--camara', type=float, default=-25, help='lado desde el que mira la cámara: ángulo en el plano (0 = oeste, 90 = sur), ya con el giro de 25°')
 a = ap.parse_args()
 L = json.load(open(a.layout)); CORTE = a.corte; M = 0.01  # cm → m
 EXT = 0.18  # grosor de los muros exteriores (m)
@@ -117,8 +118,8 @@ w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.45
 # ---------- cámara de diorama: 30° desde la vertical, girada 25° ----------
 minx, miny, maxx, maxy = huella.bounds
 c = Vector(((minx + maxx) / 2, (miny + maxy) / 2, 0.3))
-t, r = math.radians(30), math.radians(-25)
-hdir = Vector((math.cos(r), math.sin(r), 0))  # desde el oeste, un poco al norte
+t, r = math.radians(30), math.radians(a.camara)
+hdir = Vector((math.cos(r), math.sin(r), 0))  # -25 = desde el oeste; 65 = desde el sur (ventanal abajo)
 cam = bpy.data.cameras.new('cam'); cam.lens = 85; co = bpy.data.objects.new('cam', cam); sc.collection.objects.link(co)
 D = 42.0
 co.location = c + D * (math.sin(t) * hdir + Vector((0, 0, math.cos(t))))
@@ -128,12 +129,12 @@ sc.camera = co
 bpy.context.view_layer.update()
 from bpy_extras.object_utils import world_to_camera_view
 rx, ry = map(int, a.res.split('x')); sc.render.resolution_x, sc.render.resolution_y = rx, ry
-pts = [Vector((x, y, z)) for x in (minx, maxx) for y in (miny, maxy) for z in (0, CORTE)]
+pts = [Vector((x, y, z)) for x, y in huella.exterior.coords for z in (0, CORTE)]
 for _ in range(6):
     bpy.context.view_layer.update()
     uv = [world_to_camera_view(sc, co, p) for p in pts]
     span = max(max(u.x for u in uv) - min(u.x for u in uv), max(u.y for u in uv) - min(u.y for u in uv))
-    co.location = c + (co.location - c) * (span / 0.88)
+    co.location = c + (co.location - c) * (span / 0.92)
     mid = Vector((sum(u.x for u in uv) / len(uv) - 0.5, sum(u.y for u in uv) / len(uv) - 0.5))
     cam.shift_x, cam.shift_y = mid.x, mid.y * ry / rx
 
