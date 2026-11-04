@@ -443,14 +443,14 @@ else:
     elegidas = [l for l in LZ if str(l['n']) in pedir or (l.get('entidad') or '') in pedir]
 CALIDA = (1.0, 0.70, 0.42)  # ~2700 K
 TIPOS = {  # tipo → (clase de luz, potencia W, radio m)
-    'foco': ('SPOT', 9, 0.03), 'colgante': ('POINT', 30, 0.12), 'mesa': ('POINT', 14, 0.08),
+    'foco': ('SPOT', 28, 0.03), 'colgante': ('POINT', 30, 0.12), 'mesa': ('POINT', 14, 0.08),
     'techo': ('POINT', 40, 0.15), 'aplique': ('POINT', 10, 0.05)}
 for l in elegidas:
     clase, pot, rad = TIPOS.get(l['tipo'], ('POINT', 20, 0.1))
     for j, (px, py) in enumerate(l.get('puntos') or [(l['x'], l['y'])]):
         ld = bpy.data.lights.new(f"luz_{l['n']}_{j}", clase); ld.energy = pot; ld.color = CALIDA
         ld.shadow_soft_size = rad
-        if clase == 'SPOT': ld.spot_size = math.radians(80); ld.spot_blend = 0.6
+        if clase == 'SPOT': ld.spot_size = math.radians(100); ld.spot_blend = 0.7
         lo_ = bpy.data.objects.new(ld.name, ld); sc.collection.objects.link(lo_)
         lo_.location = (px * M, py * M, min(l.get('z', 250) * M, TECHO - 0.03))
 
