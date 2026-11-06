@@ -16,10 +16,10 @@
  *   icons: true            # mostrar iconos de luz
  *   rooms: true            # zonas táctiles de habitación
  *   weather: weather.casa  # entidad del tiempo (por defecto, la primera weather.* que haya)
- *   effects: true          # lluvia, nieve, nubes, niebla, tormenta y pájaros
+ *   effects: true          # lluvia, nieve, nubes, niebla, tormenta, hojas, golondrinas, murciélagos y aviones
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -61,6 +61,7 @@ class Home3dCard extends HTMLElement {
                       user-select: none; -webkit-user-drag: none; pointer-events: none; }
         .luz { mix-blend-mode: plus-lighter; transition: opacity .4s; }
         .sol, .noche { transition: opacity 1.5s; }
+        .tinte { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; transition: opacity 2s, background 2s; }
         svg { position: absolute; inset: 0; width: 100%; height: 100%; }
         .zona { fill: transparent; stroke: transparent; cursor: pointer; }
         .zona:hover { fill: rgba(255,255,255,.06); }
@@ -102,6 +103,7 @@ class Home3dCard extends HTMLElement {
     this._escena.style.aspectRatio = `${w} / ${h}`;
     this._solA = this._img('sol'); this._solB = this._img('sol');
     this._noche = this._img('noche'); this._noche.src = this._path + 'noche.jpg';
+    this._tinte = document.createElement('div'); this._tinte.className = 'tinte'; this._escena.appendChild(this._tinte);
     this._capaLuces = document.createElement('div'); this._escena.appendChild(this._capaLuces);
     if (this._config.effects) {
       this._clima = new Clima(this._escena, this._indice);
@@ -175,8 +177,13 @@ class Home3dCard extends HTMLElement {
 
   _pintarSol() {
     const s = this._hass.states[this._config.sun];
-    const az = s ? Number(s.attributes.azimuth) : 180;
-    const el = s ? Number(s.attributes.elevation) : 45;
+    const d = this._demo || {};
+    const az = d.az ?? (s ? Number(s.attributes.azimuth) : 180);
+    const el = d.el ?? (s ? Number(s.attributes.elevation) : 45);
+    // hora dorada (sol bajo) y hora azul (justo después de ponerse)
+    if (el > 0 && el < 12) { this._tinte.style.background = '#ffb54d'; this._tinte.style.opacity = (0.55 * (1 - el / 12)).toFixed(2); }
+    else if (el <= 0 && el > -7) { this._tinte.style.background = '#5a6cff'; this._tinte.style.opacity = (0.5 * Math.min(1, -el / 3)).toFixed(2); }
+    else this._tinte.style.opacity = 0;
     // noche: del todo por debajo de -6° (fin del crepúsculo civil), nada por encima de 5°
     const noche = Math.min(1, Math.max(0, (5 - el) / 11));
     this._noche.style.opacity = noche;
@@ -202,13 +209,19 @@ class Home3dCard extends HTMLElement {
       const on = s && s.state === 'on';
       if (this._iconos && this._iconos[l.entidad]) this._iconos[l.entidad].classList.toggle('on', !!on);
       let img = this._luces[l.entidad];
-      if (!on) { if (img) { img.remove(); delete this._luces[l.entidad]; } continue; }
+      if (!on) {  // se apaga con un fundido y luego se quita (las imágenes ocultas también gastan memoria)
+        if (img) { img.style.opacity = 0; delete this._luces[l.entidad]; setTimeout(() => img.remove(), 450); }
+        continue;
+      }
+      let nueva = false;
       if (!img) {
-        img = document.createElement('img'); img.className = 'luz'; img.alt = '';
+        img = document.createElement('img'); img.className = 'luz'; img.alt = ''; img.style.opacity = 0; nueva = true;
         img.src = this._path + l.archivo; this._capaLuces.appendChild(img); this._luces[l.entidad] = img;
       }
       const bri = s.attributes.brightness != null ? s.attributes.brightness / 255 : 1;
-      img.style.opacity = (0.2 + 0.8 * bri).toFixed(2);
+      const objetivo = (0.2 + 0.8 * bri).toFixed(2);
+      if (nueva) requestAnimationFrame(() => requestAnimationFrame(() => { img.style.opacity = objetivo; }));
+      else img.style.opacity = objetivo;
       // render a 2700 K: con luz más fría se le quita saturación (más blanca)
       const k = s.attributes.color_temp_kelvin;
       const frio = k ? Math.min(1, Math.max(0, (k - 2700) / 3800)) : 0;
@@ -218,20 +231,26 @@ class Home3dCard extends HTMLElement {
 
   // ---------- tiempo ----------
   _siguienteDemo() {
-    const orden = [null, 'rainy', 'lightning-rainy', 'snowy', 'fog', 'cloudy'];
-    this._demo = orden[(orden.indexOf(this._demo ?? null) + 1) % orden.length];
-    this._pintarTiempo();
+    const DEMOS = [null, { estado: 'rainy' }, { estado: 'lightning-rainy', el: -12 }, { estado: 'snowy' }, { estado: 'fog' },
+      { estado: 'cloudy' }, { estado: 'sunny', mes: 11, avion: true, nombre: 'Otoño', icono: '🍂' },
+      { estado: 'sunny', el: 4, az: 245, nombre: 'Atardecer', icono: '🌇' },
+      { estado: 'clear-night', el: -15, mes: 7, nombre: 'Noche de verano', icono: '🦇' }];
+    this._demoIdx = ((this._demoIdx || 0) + 1) % DEMOS.length;
+    this._demo = DEMOS[this._demoIdx];
+    this._pintar();
   }
 
   _pintarTiempo() {
     if (!this._clima) return;
     const e = this._entidadTiempo(); const s = e && this._hass.states[e];
     const sol = this._hass.states[this._config.sun];
-    const estado = this._demo || (s ? s.state : 'sunny');
+    const d = this._demo || {};
+    const estado = d.estado || (s ? s.state : 'sunny');
     const a = s ? s.attributes : {};
+    const el = d.el ?? (sol ? Number(sol.attributes.elevation) : 45);
     this._clima.poner({
       estado, viento: Number(a.wind_speed) || (this._demo ? 15 : 0), rumbo: Number(a.wind_bearing) || 250,
-      dia: sol ? Number(sol.attributes.elevation) > 0 : true, mes: new Date().getMonth() + 1,
+      dia: el > 0, mes: d.mes || new Date().getMonth() + 1, avion: !!d.avion,
     });
     const ICONOS = { sunny: '☀️', 'clear-night': '🌙', partlycloudy: '⛅', cloudy: '☁️', rainy: '🌧️', pouring: '🌧️',
       'lightning-rainy': '⛈️', lightning: '🌩️', snowy: '❄️', 'snowy-rainy': '🌨️', fog: '🌫️', hail: '🌨️', windy: '💨', exceptional: '⚠️' };
@@ -239,7 +258,7 @@ class Home3dCard extends HTMLElement {
       pouring: 'Lluvia fuerte', 'lightning-rainy': 'Tormenta', lightning: 'Tormenta', snowy: 'Nieve', 'snowy-rainy': 'Aguanieve',
       fog: 'Niebla', hail: 'Granizo', windy: 'Viento', exceptional: 'Aviso' };
     const temp = a.temperature != null ? `${Math.round(a.temperature)}°` : '';
-    this._pastilla.innerHTML = `<span class="icono-t">${ICONOS[estado] || '🌡️'}</span><span>${temp} ${NOMBRES[estado] || estado}</span>` +
+    this._pastilla.innerHTML = `<span class="icono-t">${d.icono || ICONOS[estado] || '🌡️'}</span><span>${temp} ${d.nombre || NOMBRES[estado] || estado}</span>` +
       (this._demo ? '<span class="demo">demo</span>' : '');
   }
 
@@ -284,6 +303,7 @@ class Clima {
     this.flash = document.createElement('div'); this.flash.className = 'destello'; escena.appendChild(this.flash);
     this.ctx = this.cv.getContext('2d');
     this.gotas = []; this.charcos = []; this.copos = []; this.nubes = []; this.pajaros = []; this.estado = null;
+    this.hojas = []; this.murcielagos = []; this.aviones = [];
     this.cam = indice.camara || { arriba: [0, -0.04], norte: [0, -0.05], este: [0.05, 0] };
     new ResizeObserver(() => this._medir()).observe(escena);
     document.addEventListener('visibilitychange', () => this._arrancar());
@@ -323,17 +343,23 @@ class Clima {
     this.rayos = e === 'lightning' || e === 'lightning-rainy';
     this.golondrinas = t.dia && t.mes >= 4 && t.mes <= 9 && !this.lluvia && !this.nieve && !this.niebla;
     this.dia = t.dia;
+    this.otono = t.dia && (t.mes === 10 || t.mes === 11) && !this.lluvia && !this.nieve;
+    this.verano_noche = !t.dia && t.mes >= 3 && t.mes <= 10 && !this.lluvia && !this.nieve;
     // viento: hacia dónde va (rumbo + 180), en la imagen; velocidad en km/h
     const hacia = ((t.rumbo + 180) * Math.PI) / 180, n = this.cam.norte, es = this.cam.este;
     const v = [Math.cos(hacia) * n[0] + Math.sin(hacia) * es[0], Math.cos(hacia) * n[1] + Math.sin(hacia) * es[1]];
     const m = Math.hypot(...v) || 1; this.viento = [v[0] / m, v[1] / m]; this.fuerza = Math.min(1, (t.viento || 0) / 40);
     this.estado = e;
     if (this.nubes.length === 0) for (let i = 0; i < 5; i++) this.nubes.push(this._nube(true));
-    this._programarRayo(); this._programarPajaros(); this._arrancar();
+    if (!this.verano_noche) this.murcielagos = [];
+    else if (!this.murcielagos.length) for (let i = 0; i < 7; i++) this.murcielagos.push(this._murcielago());
+    if (t.avion) this._lanzarAvion();
+    this._programarRayo(); this._programarPajaros(); this._programarAvion(); this._arrancar();
   }
 
   _activo() {
-    return !document.hidden && (this.lluvia || this.nieve || this.nubosidad || this.niebla || this.pajaros.length || this.charcos.length);
+    return !document.hidden && (this.lluvia || this.nieve || this.nubosidad || this.niebla || this.pajaros.length || this.charcos.length
+      || this.otono || this.hojas.length || this.murcielagos.length || this.aviones.length);
   }
 
   _arrancar() {
@@ -436,6 +462,70 @@ class Clima {
         c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
       }
     }
+    // hojas de otoño: cruzan con el viento, girando, y se posan en el suelo
+    if (this.otono || this.hojas.length) {
+      const objetivo = this.otono ? Math.round(55 * (W / 1000)) : 0;
+      while (this.hojas.length < objetivo) {
+        const p = this._suelo(); if (!p) break;
+        const col = ['#c8742a', '#a8481e', '#d9a03a', '#8a5a2b', '#b5651d'][Math.floor(Math.random() * 5)];
+        this.hojas.push({ x: p[0], y: p[1], h: (2 + Math.random() * 6) * metro, v: metro * (0.5 + Math.random() * 0.5),
+          rot: Math.random() * 6, vr: (Math.random() - 0.5) * 6, fase: Math.random() * 6, col, s: W * (0.007 + Math.random() * 0.005), suelo: 0 });
+      }
+      const empuje = (0.4 + this.fuerza) * metro;
+      for (let i = this.hojas.length - 1; i >= 0; i--) {
+        const f = this.hojas[i];
+        if (f.h > 0) { f.h -= f.v * dt; f.rot += f.vr * dt; f.fase += dt * 2.5;
+                       f.x += this.viento[0] * empuje * dt * 3; f.y += this.viento[1] * empuje * dt * 3; }
+        else { f.suelo += dt; if (f.suelo > 4) { this.hojas.splice(i, 1); continue; } }
+        const k = Math.max(0, f.h) / metro, x = f.x + arr[0] * W * k + Math.sin(f.fase) * metro * 0.3, y = f.y + arr[1] * H * k;
+        c.save(); c.globalAlpha = f.h > 0 ? 0.95 : Math.max(0, 1 - f.suelo / 4); c.translate(x, y); c.rotate(f.rot);
+        c.fillStyle = f.col; c.beginPath(); c.ellipse(0, 0, f.s * 1.2, f.s * 0.55 * Math.abs(Math.cos(f.fase)) + f.s * 0.15, 0, 0, Math.PI * 2);
+        c.fill(); c.restore();
+        if (f.h > 0) { c.fillStyle = 'rgba(0,0,0,0.12)'; c.beginPath(); c.ellipse(f.x, f.y, f.s, f.s * 0.5, 0, 0, Math.PI * 2); c.fill(); }
+      }
+    }
+    // murciélagos: vuelo errático alrededor de la casa
+    if (this.murcielagos.length) {
+      for (const m of this.murcielagos) {
+        m.t += dt; m.giro += (Math.random() - 0.5) * 8 * dt;
+        m.x += Math.cos(m.giro) * m.v * dt; m.y += Math.sin(m.giro) * m.v * dt * 0.75;
+        const dx = m.cx - m.x, dy = m.cy - m.y;  // vuelven hacia su zona
+        if (Math.hypot(dx, dy) > m.radio) m.giro = Math.atan2(dy, dx) + (Math.random() - 0.5);
+        const ala = Math.sin(m.t * 22 + m.fase), s = m.s;
+        c.save(); c.translate(m.x, m.y); c.fillStyle = 'rgba(28,28,38,0.95)'; c.strokeStyle = 'rgba(190,200,240,0.7)'; c.lineWidth = Math.max(1.2, W / 900);
+        c.beginPath(); c.moveTo(0, 0);
+        c.quadraticCurveTo(-s * 0.6, -s * (0.2 + ala * 0.7), -s * 1.2, -s * ala * 0.4);
+        c.quadraticCurveTo(-s * 0.7, s * 0.15, 0, s * 0.25);
+        c.quadraticCurveTo(s * 0.7, s * 0.15, s * 1.2, -s * ala * 0.4);
+        c.quadraticCurveTo(s * 0.6, -s * (0.2 + ala * 0.7), 0, 0);
+        c.fill(); c.stroke(); c.restore();
+      }
+    }
+    // aviones: cruzan muy alto; de día dejan estela, de noche llevan luces que parpadean
+    for (let i = this.aviones.length - 1; i >= 0; i--) {
+      const a = this.aviones[i]; a.t += dt;
+      a.x += a.vx * dt; a.y += a.vy * dt; a.estela.push([a.x, a.y]); if (a.estela.length > 140) a.estela.shift();
+      if (a.x < -W * 0.2 || a.x > W * 1.2 || a.y < -H * 0.2 || a.y > H * 1.2) { this.aviones.splice(i, 1); continue; }
+      const ang = Math.atan2(a.vy, a.vx), s = a.s;
+      if (this.dia) {
+        c.lineWidth = s * 0.35; c.lineCap = 'round';
+        for (let j = 1; j < a.estela.length; j++) {
+          c.strokeStyle = `rgba(255,255,255,${0.35 * j / a.estela.length})`;
+          c.beginPath(); c.moveTo(...a.estela[j - 1]); c.lineTo(...a.estela[j]); c.stroke();
+        }
+        c.save(); c.translate(a.x, a.y); c.rotate(ang); c.fillStyle = 'rgba(245,245,250,0.95)';
+        c.beginPath(); c.ellipse(0, 0, s * 1.6, s * 0.22, 0, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.moveTo(s * 0.3, 0); c.lineTo(-s * 0.4, -s * 1.3); c.lineTo(-s * 0.7, -s * 1.3); c.lineTo(-s * 0.3, 0);
+        c.lineTo(-s * 0.7, s * 1.3); c.lineTo(-s * 0.4, s * 1.3); c.closePath(); c.fill(); c.restore();
+      } else {
+        const blanco = (a.t % 1.2) < 0.08, rojo = (a.t % 1.0) < 0.5;
+        c.save(); c.translate(a.x, a.y); c.rotate(ang);
+        if (blanco) { c.fillStyle = 'rgba(255,255,255,0.95)'; c.beginPath(); c.arc(0, 0, s * 0.5, 0, Math.PI * 2); c.fill(); }
+        c.fillStyle = rojo ? 'rgba(255,60,60,0.95)' : 'rgba(255,60,60,0.25)'; c.beginPath(); c.arc(-s * 0.5, -s * 1.1, s * 0.25, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(60,255,120,0.8)'; c.beginPath(); c.arc(-s * 0.5, s * 1.1, s * 0.25, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+    }
     // golondrinas: una bandada cruza la imagen batiendo las alas
     if (this.pajaros.length) {
       c.strokeStyle = 'rgba(25,25,30,0.85)'; c.lineWidth = Math.max(1.2, W / 800);
@@ -451,6 +541,27 @@ class Clima {
         c.fillStyle = 'rgba(0,0,0,0.12)'; c.beginPath(); c.ellipse(b.x - arr[0] * W * 6, b.y - arr[1] * H * 6, s * 0.5, s * 0.25, 0, 0, Math.PI * 2); c.fill();
       }
     }
+  }
+
+  _murcielago() {
+    const W = this.W || 1000, H = this.H || 750, p = this._suelo() || [W / 2, H / 2];
+    return { x: p[0], y: p[1], cx: p[0], cy: p[1], radio: W * (0.06 + Math.random() * 0.08), giro: Math.random() * 6,
+             v: W * (0.09 + Math.random() * 0.05), t: 0, fase: Math.random() * 6, s: W * (0.013 + Math.random() * 0.004) };
+  }
+
+  _lanzarAvion() {
+    const W = this.W, H = this.H, desdeIzq = Math.random() < 0.5;
+    const y0 = (0.1 + Math.random() * 0.8) * H, y1 = (0.1 + Math.random() * 0.8) * H, dur = 22 + Math.random() * 10;
+    const x0 = desdeIzq ? -W * 0.1 : W * 1.1, x1 = desdeIzq ? W * 1.1 : -W * 0.1;
+    this.aviones.push({ x: x0, y: y0, vx: (x1 - x0) / dur, vy: (y1 - y0) / dur, t: 0, estela: [], s: W * 0.009 });
+    this._arrancar();
+  }
+
+  _programarAvion() {
+    if (this._tAvion) return;  // uno cada pocos minutos, haga el tiempo que haga
+    const siguiente = () => { this._tAvion = setTimeout(() => { if (!document.hidden) this._lanzarAvion(); siguiente(); },
+                                                          (90 + Math.random() * 240) * 1000); };
+    siguiente();
   }
 
   _programarRayo() {
