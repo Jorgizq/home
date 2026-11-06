@@ -32,3 +32,5 @@ views:
 - De día muestra la imagen con el sol en su posición real (`sun.sun`) y la funde con la de noche al anochecer.
 - Cada luz encendida en Home Assistant se ilumina en el diorama con su brillo y su temperatura de color.
 - Toca un icono de luz para encenderla o apagarla, o una habitación para ver sus luces.
+- Encima se dibuja el tiempo real (lluvia, nieve, nubes, niebla, tormenta) y, de abril a septiembre, golondrinas.
+  La pastilla del tiempo (abajo a la izquierda) cambia de efecto al tocarla, para probarlos.

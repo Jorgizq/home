@@ -114,10 +114,21 @@ def a_imagen(x, y, z):
 LAYOUT = json.loads(bpy.data.texts['layout.json'].as_string()) if 'layout.json' in bpy.data.texts else {'habitaciones': {}}
 habitaciones = {k: dict(nombre=h['nombre'], area=h.get('area_ha_id'),
                         poligono=[a_imagen(px / 100, py / 100, 0.0) for px, py in h['poligono']],
+                        poligono_alto=[a_imagen(px / 100, py / 100, 1.4) for px, py in h['poligono']],
                         centro=a_imagen(sum(p[0] for p in h['poligono']) / len(h['poligono']) / 100,
                                         sum(p[1] for p in h['poligono']) / len(h['poligono']) / 100, 0.9))
                 for k, h in LAYOUT['habitaciones'].items()}
-indice = dict(resolucion=[RX, RY], azimut_eje_y=AZ_Y, habitaciones=habitaciones, sol=[dict(az=az, el=el, archivo=f'sol_az{az:03d}_el{el:02d}.jpg') for az, el in rejilla],
+# vectores en la imagen (0..1) para los efectos: 1 m hacia arriba, 1 m al norte y 1 m al este, desde el centro de la casa
+_xs = [px / 100 for h in LAYOUT['habitaciones'].values() for px, _ in h['poligono']] or [4.5]
+_ys = [py / 100 for h in LAYOUT['habitaciones'].values() for _, py in h['poligono']] or [7]
+_c = ((min(_xs) + max(_xs)) / 2, (min(_ys) + max(_ys)) / 2)
+def _vec(dx, dy, dz):
+    a0 = a_imagen(_c[0], _c[1], 0); a1 = a_imagen(_c[0] + dx, _c[1] + dy, dz)
+    return [round(a1[0] - a0[0], 5), round(a1[1] - a0[1], 5)]
+def _rumbo(az):  # dirección de la brújula → vector en el plano (eje +Y mira a AZ_Y)
+    r = math.radians(az - AZ_Y); return math.sin(r), math.cos(r)
+camara = dict(arriba=_vec(0, 0, 1), norte=_vec(*_rumbo(0), 0), este=_vec(*_rumbo(90), 0))
+indice = dict(resolucion=[RX, RY], azimut_eje_y=AZ_Y, camara=camara, habitaciones=habitaciones, sol=[dict(az=az, el=el, archivo=f'sol_az{az:03d}_el{el:02d}.jpg') for az, el in rejilla],
               luces=[dict(n=l['n'], entidad=l.get('entidad'), nombre=l['nombre'], habitacion=l['habitacion'], tipo=l['tipo'],
                           icono=a_imagen(l['x'] / 100, l['y'] / 100, 1.0 if l['tipo'] in ('foco', 'techo', 'colgante') else min(l.get('z', 90), 120) / 100),
                           archivo=f"luz_{l['n']:02d}.jpg") for l in LUCES])
