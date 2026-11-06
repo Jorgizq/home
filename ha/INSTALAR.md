@@ -37,3 +37,22 @@ views:
 - Toca un icono de luz para encenderla o apagarla, o una habitación para ver sus luces.
 - Encima se dibuja el tiempo real (lluvia, nieve, nubes, niebla, tormenta) y, de abril a septiembre, golondrinas.
   La pastilla del tiempo (abajo a la izquierda) cambia de efecto al tocarla, para probarlos.
+
+## Tablet en la pared (modo kiosko, sin HACS)
+1. Ajustes → Personas → **Usuarios** → Añadir usuario `tablet` (sin administrador).
+2. En la tarjeta del panel:
+
+```yaml
+      - type: custom:home-3d-card
+        path: /local/diorama/render/salida/
+        fit: cover
+        kiosk: tablet     # oculta barra y menú solo para el usuario "tablet"
+```
+
+   Para editar el panel desde la tablet, añade `?editar` al final de la dirección.
+3. En la tablet: app **Home Assistant** (Play Store) → entrar con `tablet` (servidor `http://192.168.1.85`)
+   → perfil → **Panel de control** → Diorama.
+4. Pantalla siempre encendida: Ajustes → Información de la tablet → Información de software → tocar 7 veces
+   *Número de compilación* → Opciones de desarrollador → **Pantalla activa**.
+5. Fijar la app: Ajustes → Seguridad y privacidad → Más ajustes de seguridad → **Fijar aplicaciones**;
+   luego Recientes → icono de la app → **Fijar esta aplicación** (soltar: Atrás + Recientes a la vez).

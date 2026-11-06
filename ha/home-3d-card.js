@@ -20,9 +20,12 @@
  *   fit: contain           # contain = cabe entera en la pantalla (por defecto) · cover = llena la pantalla recortando bordes
  *                          # · width = ocupa todo el ancho (como antes)
  *   header: 56px           # alto de la barra de HA que hay que descontar (0 con kiosk-mode)
+ *   kiosk: tablet          # oculta la barra de arriba y el menú lateral de HA (sin HACS):
+ *                          #   true = para todos · nombre de usuario (o lista) = solo para ese usuario
+ *                          #   Para editar el panel en ese dispositivo, añade ?editar a la dirección.
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -38,6 +41,7 @@ class Home3dCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    this._kiosko();
     if (!this._indice) return;
     // Solo redibuja si ha cambiado algo que la tarjeta usa (HA manda muchas actualizaciones por segundo).
     const firma = this._entidades().map((e) => {
@@ -137,6 +141,7 @@ class Home3dCard extends HTMLElement {
     if (this._config.icons) this._montarIconos();
     if (this._pastilla) card.appendChild(this._pastilla);  // pegada a la pantalla, no a la imagen: siempre visible
     this._firma = '';
+    this._kioskoAplicado = undefined;
     if (this._hass) this.hass = this._hass;
   }
 
@@ -177,6 +182,54 @@ class Home3dCard extends HTMLElement {
       b.addEventListener('contextmenu', (ev) => ev.preventDefault());
       this._escena.appendChild(b);
       this._iconos[l.entidad] = b;
+    }
+  }
+
+  // ---------- modo kiosko (sin HACS) ----------
+  _kioskoActivo() {
+    const k = this._config.kiosk;
+    if (!k || /[?&]editar\b/.test(location.search)) return false;
+    if (k === true) return true;
+    const nombre = (this._hass && this._hass.user && this._hass.user.name || '').toLowerCase();
+    return [].concat(k).some((u) => String(u).toLowerCase() === nombre);
+  }
+
+  _kiosko() {
+    const activo = this._kioskoActivo();
+    const card = this._root && this._root.querySelector('ha-card');
+    if (card && this._config.header == null)  // sin barra de HA no hay que descontar su alto
+      card.style.setProperty('--cabecera', activo ? '0px' : 'var(--header-height, 56px)');
+    if (activo === this._kioskoAplicado) return;
+    this._kioskoAplicado = activo;
+    // Busca en el árbol de HA (atravesando shadow roots) los elementos de la barra y el menú.
+    const buscar = (raiz, sel, prof = 0) => {
+      if (!raiz || prof > 8) return null;
+      const e = raiz.querySelector(sel); if (e) return e;
+      for (const n of raiz.querySelectorAll('*')) { if (n.shadowRoot) { const r = buscar(n.shadowRoot, sel, prof + 1); if (r) return r; } }
+      return null;
+    };
+    const ha = document.querySelector('home-assistant');
+    const main = ha && ha.shadowRoot && ha.shadowRoot.querySelector('home-assistant-main');
+    const huiRoot = buscar(document, 'hui-root');
+    const estilo = (raiz, id, css) => {
+      if (!raiz) return;
+      let st = raiz.querySelector(`style#${id}`);
+      if (!activo) { if (st) st.remove(); return; }
+      if (!st) { st = document.createElement('style'); st.id = id; raiz.appendChild(st); }
+      st.textContent = css;
+    };
+    estilo(huiRoot && huiRoot.shadowRoot, 'diorama-kiosko',
+      `.header, app-header, ha-app-layout > app-header, .toolbar { display: none !important; }
+       :host { --header-height: 0px !important; }
+       #view { padding-top: 0 !important; margin-top: 0 !important; min-height: 100vh !important; }`);
+    estilo(main && main.shadowRoot, 'diorama-kiosko',
+      `ha-sidebar { display: none !important; }
+       ha-drawer { --mdc-drawer-width: 0px !important; }
+       partial-panel-resolver { --mdc-top-app-bar-width: 100% !important; }`);
+    if (main && main.shadowRoot) {  // la variante antigua del menú lateral (app-drawer)
+      const drawer = main.shadowRoot.querySelector('ha-drawer, app-drawer-layout');
+      if (drawer && drawer.shadowRoot) estilo(drawer.shadowRoot, 'diorama-kiosko',
+        `.mdc-drawer, aside { display: none !important; } .mdc-drawer-app-content { margin-left: 0 !important; }`);
     }
   }
 
