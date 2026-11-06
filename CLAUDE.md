@@ -9,9 +9,9 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Modelo Blender con muebles y acabados → `casa/modelo.py`
 - ✅ 110 renders (noche, 33 capas de luz, 76 posiciones del sol) → `render/salida/`
 - ✅ Áreas creadas en HA (planta "Vivienda"); ids en `layout.json` (`area_ha_id`)
-- ✅ Tarjeta `ha/home-3d-card.js` v0.3.1 (encaja en la pantalla: `fit: contain|cover|width`) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
+- ✅ Tarjeta `ha/home-3d-card.js` v0.4.0 (encaja en pantalla `fit`; tono 2200–4000 K; panel con brillo y temperatura; pulsación larga = ventana de HA) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
 - ✅ HA enlazado al repo: clon parcial en `/config/www/diorama`; actualizar con `git -C www/diorama pull`
-  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=5`)
+  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=6`)
 - ⏳ Siguiente: listar dispositivos de HA (aspirador, media_player, persianas, sensores…) para nuevos efectos
 - ⬜ Tablet en la pared (usuario propio, kiosk-mode)
 

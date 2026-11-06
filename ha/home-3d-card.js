@@ -22,7 +22,7 @@
  *   header: 56px           # alto de la barra de HA que hay que descontar (0 con kiosk-mode)
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.3.1';
+const VERSION = '0.4.0';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -88,6 +88,13 @@ class Home3dCard extends HTMLElement {
         .panel .estado { font-size: 12px; opacity: .7; }
         .panel .fila.on .estado { color: #ffc46b; opacity: 1; }
         .panel .cerrar { position: absolute; top: 6px; right: 10px; cursor: pointer; opacity: .6; font-size: 18px; }
+        .panel .lista { max-height: 60vh; overflow-y: auto; }
+        .panel .luzfila { border-top: 1px solid rgba(255,255,255,.08); }
+        .panel .luzfila .fila { border-top: 0; }
+        .panel .mandos { display: grid; gap: 4px; padding: 0 0 8px; }
+        .panel .mandos label { display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: .85; }
+        .panel input[type=range] { flex: 1; accent-color: #ffc46b; min-width: 150px; }
+        .panel input.kelvin { accent-color: #ffe2b0; background: linear-gradient(90deg, #ffb14e, #fff4e6); border-radius: 4px; height: 6px; }
         .aviso { color: #ccc; padding: 16px; font: 14px system-ui, sans-serif; }
         canvas.clima { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .destello { position: absolute; inset: 0; background: #dfe8ff; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
@@ -161,7 +168,13 @@ class Home3dCard extends HTMLElement {
       const b = document.createElement('button');
       b.className = 'icono'; b.title = l.nombre;
       b.style.left = `${l.icono[0] * 100}%`; b.style.top = `${l.icono[1] * 100}%`;
-      b.addEventListener('click', (ev) => { ev.stopPropagation(); this._alternar(l.entidad); });
+      let temporizador = null, largo = false;
+      b.addEventListener('pointerdown', () => {
+        largo = false; temporizador = setTimeout(() => { largo = true; this._masInfo(l.entidad); }, 550);
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => b.addEventListener(t, () => clearTimeout(temporizador)));
+      b.addEventListener('click', (ev) => { ev.stopPropagation(); if (!largo) this._alternar(l.entidad); });
+      b.addEventListener('contextmenu', (ev) => ev.preventDefault());
       this._escena.appendChild(b);
       this._iconos[l.entidad] = b;
     }
@@ -179,6 +192,10 @@ class Home3dCard extends HTMLElement {
     return Object.keys(this._hass.states).find((e) => e.startsWith('weather.')) || null;
   }
 
+  _masInfo(entidad) {  // la ventana estándar de HA con todos los controles de la luz
+    this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: entidad }, bubbles: true, composed: true }));
+  }
+
   _alternar(entidad) {
     this._hass.callService('light', 'toggle', { entity_id: entidad });
   }
@@ -187,7 +204,7 @@ class Home3dCard extends HTMLElement {
     this._pintarSol();
     this._pintarLuces();
     this._pintarTiempo();
-    if (this._panelAbierto) this._abrirPanel(this._panelAbierto);
+    if (this._panelAbierto && !this._arrastrando) this._abrirPanel(this._panelAbierto);
   }
 
   _pintarSol() {
@@ -238,10 +255,19 @@ class Home3dCard extends HTMLElement {
       if (nueva) requestAnimationFrame(() => requestAnimationFrame(() => { img.style.opacity = objetivo; }));
       else img.style.opacity = objetivo;
       // render a 2700 K: con luz más fría se le quita saturación (más blanca)
-      const k = s.attributes.color_temp_kelvin;
-      const frio = k ? Math.min(1, Math.max(0, (k - 2700) / 3800)) : 0;
-      img.style.filter = frio ? `saturate(${(1 - 0.85 * frio).toFixed(2)}) brightness(${(1 + 0.1 * frio).toFixed(2)})` : '';
+      img.style.filter = Home3dCard._tono(s.attributes.color_temp_kelvin);
     }
+  }
+
+  // Las capas están renderizadas a 2700 K: más frío → menos saturado (más blanco); más cálido → más ámbar.
+  static _tono(k) {
+    if (!k || Math.abs(k - 2700) < 60) return '';
+    if (k > 2700) {
+      const f = Math.min(1, (k - 2700) / 2800);
+      return `saturate(${(1 - 0.8 * f).toFixed(2)}) hue-rotate(${(-6 * f).toFixed(1)}deg) brightness(${(1 + 0.08 * f).toFixed(2)})`;
+    }
+    const f = Math.min(1, (2700 - k) / 500);  // 2200 K = f 1
+    return `sepia(${(0.35 * f).toFixed(2)}) saturate(${(1 + 0.6 * f).toFixed(2)}) hue-rotate(${(-8 * f).toFixed(1)}deg) brightness(${(1 - 0.08 * f).toFixed(2)})`;
   }
 
   // ---------- tiempo ----------
@@ -286,15 +312,31 @@ class Home3dCard extends HTMLElement {
     const div = document.createElement('div'); div.className = 'panel';
     div.addEventListener('click', (ev) => ev.stopPropagation());
     const filas = luces.map((l) => {
-      const s = this._hass.states[l.entidad];
-      const on = s && s.state === 'on';
-      const bri = on && s.attributes.brightness != null ? ` · ${Math.round((s.attributes.brightness / 255) * 100)} %` : '';
-      return `<div class="fila${on ? ' on' : ''}" data-e="${l.entidad}"><span>${l.nombre}</span>
-              <span class="estado">${on ? 'encendida' + bri : 'apagada'}</span></div>`;
+      const s = this._hass.states[l.entidad]; if (!s) return '';
+      const a = s.attributes, on = s.state === 'on';
+      const pct = on && a.brightness != null ? Math.round((a.brightness / 255) * 100) : null;
+      const modos = a.supported_color_modes || [];
+      const regulable = modos.some((m) => m !== 'onoff');
+      const conTemp = modos.includes('color_temp');
+      const kmin = a.min_color_temp_kelvin || 2200, kmax = a.max_color_temp_kelvin || 4000;
+      const ctrl = on && regulable ? `<div class="mandos">
+          <label title="Brillo">☀︎<input type="range" class="brillo" min="1" max="100" value="${pct ?? 100}" data-e="${l.entidad}"></label>
+          ${conTemp ? `<label title="Temperatura de color">🌡︎<input type="range" class="kelvin" min="${kmin}" max="${kmax}" step="50"
+              value="${a.color_temp_kelvin || kmin}" data-e="${l.entidad}"></label>` : ''}</div>` : '';
+      return `<div class="luzfila${on ? ' on' : ''}"><div class="fila" data-e="${l.entidad}"><span>${l.nombre}</span>
+              <span class="estado">${on ? (pct != null ? `${pct} %` : 'encendida') + (a.color_temp_kelvin ? ` · ${a.color_temp_kelvin} K` : '') : 'apagada'}</span></div>${ctrl}</div>`;
     }).join('');
-    div.innerHTML = `<span class="cerrar">×</span><h3>${hab.nombre}</h3>${filas || '<div class="estado">Sin luces en Home Assistant</div>'}`;
+    div.innerHTML = `<span class="cerrar">×</span><h3>${hab.nombre}</h3><div class="lista">${filas || '<div class="estado">Sin luces en Home Assistant</div>'}</div>`;
     div.querySelector('.cerrar').addEventListener('click', () => this._cerrarPanel());
     div.querySelectorAll('.fila').forEach((f) => f.addEventListener('click', () => this._alternar(f.dataset.e)));
+    div.querySelectorAll('input[type=range]').forEach((r) => {
+      r.addEventListener('pointerdown', () => { this._arrastrando = true; });
+      r.addEventListener('change', () => {
+        this._arrastrando = false;
+        const datos = r.classList.contains('brillo') ? { brightness_pct: Number(r.value) } : { color_temp_kelvin: Number(r.value) };
+        this._hass.callService('light', 'turn_on', { entity_id: r.dataset.e, ...datos });
+      });
+    });
     this._escena.appendChild(div); this._panel = div;
   }
 
