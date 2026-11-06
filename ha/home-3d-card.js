@@ -17,14 +17,17 @@
  *   rooms: true            # zonas táctiles de habitación
  *   weather: weather.casa  # entidad del tiempo (por defecto, la primera weather.* que haya)
  *   effects: true          # lluvia, nieve, nubes, niebla, tormenta, hojas, golondrinas, murciélagos y aviones
+ *   fit: contain           # contain = cabe entera en la pantalla (por defecto) · cover = llena la pantalla recortando bordes
+ *                          # · width = ocupa todo el ancho (como antes)
+ *   header: 56px           # alto de la barra de HA que hay que descontar (0 con kiosk-mode)
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.3.0';
+const VERSION = '0.3.1';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
     if (!config.path) throw new Error('Falta "path" (carpeta con indice.json y las imágenes)');
-    this._config = { sun: 'sun.sun', icons: true, rooms: true, effects: true, ...config };
+    this._config = { sun: 'sun.sun', icons: true, rooms: true, effects: true, fit: 'contain', ...config };
     this._path = this._config.path.endsWith('/') ? this._config.path : this._config.path + '/';
     this._firma = '';
     if (!this._root) this._montar();
@@ -55,8 +58,15 @@ class Home3dCard extends HTMLElement {
     this._root.innerHTML = `
       <style>
         :host { display: block; }
-        ha-card { overflow: hidden; background: #111; }
+        ha-card { overflow: hidden; background: #111; position: relative; }
         .escena { position: relative; width: 100%; }
+        /* encajar en la pantalla: el alto disponible es la ventana menos la barra de HA */
+        ha-card.ajustar { height: calc(100vh - var(--cabecera)); height: calc(100dvh - var(--cabecera));
+                          display: flex; align-items: center; justify-content: center; }
+        ha-card.contain .escena { flex: none; width: min(100%, calc((100vh - var(--cabecera)) * var(--ar)));
+                                  width: min(100%, calc((100dvh - var(--cabecera)) * var(--ar))); }
+        ha-card.cover .escena { flex: none; width: max(100%, calc((100vh - var(--cabecera)) * var(--ar)));
+                                width: max(100%, calc((100dvh - var(--cabecera)) * var(--ar))); }
         .escena img { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
                       user-select: none; -webkit-user-drag: none; pointer-events: none; }
         .luz { mix-blend-mode: plus-lighter; transition: opacity .4s; }
@@ -101,6 +111,11 @@ class Home3dCard extends HTMLElement {
     const [w, h] = this._indice.resolucion;
     this._escena.innerHTML = '';
     this._escena.style.aspectRatio = `${w} / ${h}`;
+    const card = this._root.querySelector('ha-card'), fit = this._config.fit;
+    card.className = fit === 'contain' || fit === 'cover' ? `ajustar ${fit}` : '';
+    card.style.setProperty('--ar', (w / h).toFixed(4));
+    const cab = this._config.header ?? 'var(--header-height, 56px)';
+    card.style.setProperty('--cabecera', typeof cab === 'number' ? `${cab}px` : cab);
     this._solA = this._img('sol'); this._solB = this._img('sol');
     this._noche = this._img('noche'); this._noche.src = this._path + 'noche.jpg';
     this._tinte = document.createElement('div'); this._tinte.className = 'tinte'; this._escena.appendChild(this._tinte);
@@ -113,7 +128,7 @@ class Home3dCard extends HTMLElement {
     this._luces = {};  // entidad → <img>, solo mientras está encendida (las imágenes ocultas también gastan memoria)
     if (this._config.rooms) this._montarZonas();
     if (this._config.icons) this._montarIconos();
-    if (this._pastilla) this._escena.appendChild(this._pastilla);
+    if (this._pastilla) card.appendChild(this._pastilla);  // pegada a la pantalla, no a la imagen: siempre visible
     this._firma = '';
     if (this._hass) this.hass = this._hass;
   }

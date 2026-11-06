@@ -26,6 +26,9 @@ views:
     cards:
       - type: custom:home-3d-card
         path: /local/home-3d/
+        # fit: contain   # cabe entera en la pantalla (por defecto)
+        # fit: cover     # llena la pantalla recortando bordes (tablet en la pared)
+        # header: 0      # con kiosk-mode, que no hay barra arriba
 ```
 
 ## Qué hace
