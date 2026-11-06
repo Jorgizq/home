@@ -12,8 +12,18 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Tarjeta `ha/home-3d-card.js` v0.5.0 (`kiosk: <usuario>` oculta barra y menú sin HACS; encaja en pantalla `fit`; tono 2200–4000 K; panel con brillo y temperatura; pulsación larga = ventana de HA) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
 - ✅ HA enlazado al repo: clon parcial en `/config/www/diorama`; actualizar con `git -C www/diorama pull`
   y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=7`)
-- ⏳ Siguiente: listar dispositivos de HA (aspirador, media_player, persianas, sensores…) para nuevos efectos
-- ⬜ Tablet en la pared (usuario propio, kiosk-mode)
+- ✅ Tablet en la pared (Samsung Galaxy Tab, Android): usuario `tablet`, app de HA, `kiosk: tablet`, `fit: cover`,
+  pantalla activa y app fijada (pasos en `ha/INSTALAR.md`)
+- ⏳ Siguiente: listar dispositivos de HA (aspirador, media_player, persianas, clima, sensores de puertas/ventanas,
+  potencia) y proponer efectos con ellos. Desde una sesión de escritorio, con Claude in Chrome sobre HA.
+
+## Cómo trabajar desde el escritorio
+- Para hablar con HA: navegador (Claude in Chrome). Desde el portátil de empresa la terminal no llega a HA; desde el Mac sí debería.
+- Para renderizar en local: Blender 5.2 instalado y `render/renderizar.command` (Mac) o `renderizar.bat` (Windows).
+  Sin Blender, `pip install bpy==5.2.3 trimesh shapely mapbox_earcut` y usar Blender como módulo de Python.
+- Las imágenes de `render/salida/` se versionan en git (HA las baja con `git pull`).
+- Cada cambio de la tarjeta: subir `VERSION` dentro del `.js` y avisar a Jorge de que suba `?v=` en Recursos.
+- Probar la tarjeta antes de publicarla: servidor local con una copia de `render/salida/` y un `hass` simulado en Playwright.
 
 ## Estructura
 | Ruta | Qué es |
