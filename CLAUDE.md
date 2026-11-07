@@ -11,11 +11,20 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Áreas creadas en HA (planta "Vivienda"); ids en `layout.json` (`area_ha_id`)
 - ✅ Tarjeta `ha/home-3d-card.js` v0.5.0 (`kiosk: <usuario>` oculta barra y menú sin HACS; encaja en pantalla `fit`; tono 2200–4000 K; panel con brillo y temperatura; pulsación larga = ventana de HA) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
 - ✅ HA enlazado al repo: clon parcial en `/config/www/diorama`; actualizar con `git -C www/diorama pull`
-  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=7`)
+  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=8`)
 - ✅ Tablet en la pared (Samsung Galaxy Tab, Android): usuario `tablet`, app de HA, `kiosk: tablet`, `fit: cover`,
   pantalla activa y app fijada (pasos en `ha/INSTALAR.md`)
-- ⏳ Siguiente: listar dispositivos de HA (aspirador, media_player, persianas, clima, sensores de puertas/ventanas,
-  potencia) y proponer efectos con ellos. Desde una sesión de escritorio, con Claude in Chrome sobre HA.
+- ✅ Dispositivos de HA revisados (nov 2026): 24 TRADFRI (DIRIGERA por Matter), 6 mandos, Denon AVR-X1400H (salón),
+  Sonos Era 300 ×2 en pareja (`media_player.oficina_oficina`, despacho), Epson (tendedero). Sin aspirador, persianas,
+  clima ni sensores de puertas. Las luces **no** tienen área en HA (la tarjeta no la necesita).
+- ✅ 2 regletas Shelly Power Strip 4 Gen4 en el despacho, un enchufe por aparato (`switch.despacho_*`, `sensor.despacho_*_potencia`
+  / `_energia`), todas en el panel de Energía: Regleta 1 = Sonos 1, aire, libre, Sonos 2 · Regleta 2 = monitor derecho, mesa,
+  dock ThinkPad, monitor izquierdo. El aire es el split de la antigua terraza (sobre la ventana del despacho).
+- ✅ Tarjeta v0.6.0: aparatos en vivo (`render/salida/aparatos.json`): pantallas de los monitores y brillo en el escritorio,
+  tele (color cambiante), notas en Denon y Sonos al reproducir, flechas de la mesa al moverse, aire soplando; el panel
+  de la habitación muestra cada aparato con sus W y el total. Demo «Aparatos» en la pastilla del tiempo.
+- ⏳ Siguiente: LG C1 (integración LG webOS; encender la tele y aceptar el aviso) → `devices: {tele: media_player.…}` en la
+  tarjeta o `estado` en `casa/aparatos.json`. Después: Alexa Devices (temperatura por habitación).
 
 ## Cómo trabajar desde el escritorio
 - Para hablar con HA: navegador (Claude in Chrome). Desde el portátil de empresa la terminal no llega a HA; desde el Mac sí debería.
@@ -23,12 +32,16 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
   Sin Blender, `pip install bpy==5.2.3 trimesh shapely mapbox_earcut` y usar Blender como módulo de Python.
 - Las imágenes de `render/salida/` se versionan en git (HA las baja con `git pull`).
 - Cada cambio de la tarjeta: subir `VERSION` dentro del `.js` y avisar a Jorge de que suba `?v=` en Recursos.
+- Aparatos (monitores, tele, altavoces, aire…): posición en cm y entidades en `casa/aparatos.json`; luego
+  `python tools/aparatos.py` los proyecta a `render/salida/aparatos.json` (recupera la cámara de los iconos de `indice.json`, sin Blender).
+  Ojo: los iconos se proyectaron a 1 m (focos/techo/colgantes) o a su z (máx. 1,20 m); los muros están cortados a 1,40 m.
 - Probar la tarjeta antes de publicarla: servidor local con una copia de `render/salida/` y un `hass` simulado en Playwright.
 
 ## Estructura
 | Ruta | Qué es |
 |---|---|
 | `casa/layout.json` | Plano: habitaciones (polígonos), aberturas, ventanas, muebles, orientación, cámara. **cm**, +Y = sur (fachada del salón), +X = oeste, origen esquina inferior izquierda del escaneo enderezado (giro 24,6°) |
+| `casa/aparatos.json` | Aparatos dibujados en vivo (tipo, x/y/z en cm, entidades de estado y potencia) → `tools/aparatos.py` |
 | `casa/luces.json` | Puntos de luz (n, tipo, x/y/z en cm, entidad de HA o `null` = interruptor sin domótica) |
 | `casa/modelo.py` | Construye la escena desde layout.json y renderiza (Blender como módulo `bpy` 5.2.3) |
 | `render/casa.blend` + `render/renderizar.py` | Escena lista + script que genera todas las imágenes y `indice.json` (reanudable; `--solo`, `--max`, `--muestras`) |

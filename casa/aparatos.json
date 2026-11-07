@@ -1,0 +1,47 @@
+{
+  "nota": "Aparatos que la tarjeta dibuja en vivo (no están en los renders). Posiciones en cm como layout.json (+Y sur, +X oeste). Los muros están cortados a 140 cm: lo que esté más alto se baja a esa altura. Tras cambiar algo: python tools/aparatos.py (no hace falta Blender).",
+  "aparatos": [
+    {
+      "id": "monitor_izquierdo", "nombre": "Monitor izquierdo", "tipo": "pantalla", "habitacion": "despacho",
+      "potencia": ["sensor.despacho_monitor_izquierdo_potencia"], "umbral": 5, "info": "switch.despacho_monitor_izquierdo",
+      "pantalla": { "x": 645, "y": [1084, 1138], "z": [88, 120] }, "brillo": { "x": 672, "y": 1111, "z": 76, "r": 28 }
+    },
+    {
+      "id": "monitor_derecho", "nombre": "Monitor derecho", "tipo": "pantalla", "habitacion": "despacho",
+      "potencia": ["sensor.despacho_monitor_derecho_potencia"], "umbral": 5, "info": "switch.despacho_monitor_derecho",
+      "pantalla": { "x": 645, "y": [1145, 1199], "z": [88, 120] }, "brillo": { "x": 672, "y": 1172, "z": 76, "r": 28 }
+    },
+    {
+      "id": "dock", "nombre": "Dock ThinkPad", "tipo": "enchufe", "habitacion": "despacho",
+      "potencia": ["sensor.despacho_dock_thinkpad_potencia"], "umbral": 1, "info": "switch.despacho_dock_thinkpad"
+    },
+    {
+      "id": "mesa", "nombre": "Mesa elevable", "tipo": "mesa", "habitacion": "despacho",
+      "potencia": ["sensor.despacho_mesa_potencia"], "umbral": 20, "info": "switch.despacho_mesa",
+      "punto": { "x": 712, "y": 1245, "z": 100 }
+    },
+    {
+      "id": "sonos", "nombre": "Sonos (2)", "tipo": "altavoz", "habitacion": "despacho",
+      "estado": "media_player.oficina_oficina", "info": "media_player.oficina_oficina",
+      "potencia": ["sensor.despacho_sonos_1_potencia", "sensor.despacho_sonos_2_potencia"],
+      "emisores": [{ "x": 640, "y": 1070, "z": 125 }, { "x": 640, "y": 1213, "z": 125 }]
+    },
+    {
+      "id": "denon", "nombre": "Denon (música)", "tipo": "altavoz", "habitacion": "salon",
+      "estado": "media_player.el_reproductor_del_salon", "info": "media_player.el_reproductor_del_salon",
+      "emisores": [{ "x": 360, "y": 1168, "z": 50 }]
+    },
+    {
+      "id": "tele", "nombre": "Televisión", "tipo": "tele", "habitacion": "salon",
+      "estado": null, "nota": "LG C1: poner aquí su media_player cuando esté en HA (o en la tarjeta: devices: {tele: media_player.xxx})",
+      "pantalla": { "x": 350, "y": [1042, 1148], "z": [67, 123] }, "brillo": { "x": 430, "y": 1095, "z": 0, "r": 90 }
+    },
+    {
+      "id": "aire", "nombre": "Aire acondicionado", "tipo": "aire", "habitacion": "salon",
+      "nota": "Split en la antigua terraza, en la pared del despacho, encima de su ventana. Enchufado a la regleta del despacho.",
+      "potencia": ["sensor.despacho_aire_potencia"], "umbral": 40, "info": "switch.despacho_aire",
+      "cuerpo": { "x": 598, "y": [1295, 1375], "z": [114, 138] },
+      "flujo": { "x": [590, 380], "y": [1305, 1325, 1345, 1365], "z": [118, 38] }
+    }
+  ]
+}

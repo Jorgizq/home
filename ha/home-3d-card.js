@@ -17,6 +17,8 @@
  *   rooms: true            # zonas táctiles de habitación
  *   weather: weather.casa  # entidad del tiempo (por defecto, la primera weather.* que haya)
  *   effects: true          # lluvia, nieve, nubes, niebla, tormenta, hojas, golondrinas, murciélagos y aviones
+ *   devices:               # aparatos dibujados en vivo (render/salida/aparatos.json): monitores, tele, música, mesa, aire
+ *     tele: media_player.lg_c1   # cambia la entidad de un aparato por su id · devices: false = sin aparatos
  *   fit: contain           # contain = cabe entera en la pantalla (por defecto) · cover = llena la pantalla recortando bordes
  *                          # · width = ocupa todo el ancho (como antes)
  *   header: 56px           # alto de la barra de HA que hay que descontar (0 con kiosk-mode)
@@ -25,7 +27,7 @@
  *                          #   Para editar el panel en ese dispositivo, añade ?editar a la dirección.
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -50,9 +52,13 @@ class Home3dCard extends HTMLElement {
       if (e === this._config.sun) return `${Math.round(s.attributes.azimuth)}|${Math.round(s.attributes.elevation * 2)}`;
       if (e.startsWith('weather.')) return `${s.state}|${s.attributes.temperature}|${s.attributes.wind_speed}|${s.attributes.wind_bearing}`;
       return `${s.state}|${s.attributes.brightness || ''}|${s.attributes.color_temp_kelvin || ''}`;
-    }).join(';');
-    if (firma === this._firma) return;
-    this._firma = firma;
+    }).join(';') + '#' + this._firmaAparatos();
+    const fPanel = this._firmaPanel();  // los vatios cambian a menudo: solo refrescan el panel abierto
+    if (firma === this._firma) {
+      if (fPanel !== this._fPanel) { this._fPanel = fPanel; if (this._panelAbierto && !this._arrastrando) this._abrirPanel(this._panelAbierto); }
+      return;
+    }
+    this._firma = firma; this._fPanel = fPanel;
     this._pintar();
   }
 
@@ -100,6 +106,10 @@ class Home3dCard extends HTMLElement {
         .panel input[type=range] { flex: 1; accent-color: #ffc46b; min-width: 150px; }
         .panel input.kelvin { accent-color: #ffe2b0; background: linear-gradient(90deg, #ffb14e, #fff4e6); border-radius: 4px; height: 6px; }
         .aviso { color: #ccc; padding: 16px; font: 14px system-ui, sans-serif; }
+        canvas.aparatos { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+        canvas.aparatos.brillo { mix-blend-mode: plus-lighter; }
+        .panel h3 .total { float: right; margin-left: 16px; margin-right: 18px; font-size: 13px; font-weight: 500; color: #ffc46b; }
+        .panel .seccion { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; opacity: .5; padding: 8px 0 2px; }
         canvas.clima { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .destello { position: absolute; inset: 0; background: #dfe8ff; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
         .tiempo { position: absolute; left: 2%; bottom: 3%; display: flex; align-items: center; gap: 8px; padding: 6px 12px;
@@ -115,6 +125,11 @@ class Home3dCard extends HTMLElement {
     try {
       const r = await fetch(`${this._path}indice.json?v=${VERSION}`, { cache: 'no-cache' });
       this._indice = await r.json();
+      this._listaAparatos = [];
+      if (this._config.devices !== false) {
+        const ra = await fetch(`${this._path}aparatos.json?v=${VERSION}`, { cache: 'no-cache' }).catch(() => null);
+        if (ra && ra.ok) this._listaAparatos = (await ra.json()).aparatos || [];
+      }
     } catch (e) {
       this._escena.innerHTML = `<div class="aviso">No encuentro ${this._path}indice.json</div>`;
       return;
@@ -131,6 +146,7 @@ class Home3dCard extends HTMLElement {
     this._noche = this._img('noche'); this._noche.src = this._path + 'noche.jpg';
     this._tinte = document.createElement('div'); this._tinte.className = 'tinte'; this._escena.appendChild(this._tinte);
     this._capaLuces = document.createElement('div'); this._escena.appendChild(this._capaLuces);
+    this._dibujoAparatos = this._listaAparatos.length ? new Aparatos(this._escena, this._listaAparatos, this._indice.camara) : null;
     if (this._config.effects) {
       this._clima = new Clima(this._escena, this._indice);
       this._pastilla = document.createElement('button'); this._pastilla.className = 'tiempo';
@@ -256,6 +272,7 @@ class Home3dCard extends HTMLElement {
   _pintar() {
     this._pintarSol();
     this._pintarLuces();
+    this._pintarAparatos();
     this._pintarTiempo();
     if (this._panelAbierto && !this._arrastrando) this._abrirPanel(this._panelAbierto);
   }
@@ -271,7 +288,7 @@ class Home3dCard extends HTMLElement {
     else this._tinte.style.opacity = 0;
     // noche: del todo por debajo de -6° (fin del crepúsculo civil), nada por encima de 5°
     const noche = Math.min(1, Math.max(0, (5 - el) / 11));
-    this._noche.style.opacity = noche;
+    this._noche.style.opacity = noche; this._nocheF = noche;
     // día: las dos posiciones de sol renderizadas más cercanas, fundidas según la distancia
     const elc = Math.max(5, el);
     const dist = (p) => {
@@ -323,12 +340,73 @@ class Home3dCard extends HTMLElement {
     return `sepia(${(0.35 * f).toFixed(2)}) saturate(${(1 + 0.6 * f).toFixed(2)}) hue-rotate(${(-8 * f).toFixed(1)}deg) brightness(${(1 - 0.08 * f).toFixed(2)})`;
   }
 
+  // ---------- aparatos (monitores, tele, música, mesa elevable, aire) ----------
+  _ent(a) { const d = this._config.devices; return (d && d[a.id]) || a.estado || null; }
+
+  _vatios(a) {  // suma de los sensores de potencia del aparato (null si no tiene o no hay datos)
+    if (!a.potencia || !this._hass) return null;
+    let t = 0, hay = false;
+    for (const e of a.potencia) {
+      const s = this._hass.states[e], v = s ? parseFloat(s.state) : NaN;
+      if (Number.isFinite(v)) { t += v; hay = true; }
+    }
+    return hay ? t : null;
+  }
+
+  _activo(a) {
+    const e = this._ent(a);
+    if (e) {
+      const s = this._hass.states[e]; if (!s) return false;
+      if (a.tipo === 'altavoz') return s.state === 'playing';
+      return !['off', 'standby', 'unavailable', 'unknown'].includes(s.state);
+    }
+    if (a.tipo === 'tele' || a.tipo === 'altavoz') return false;
+    const w = this._vatios(a);
+    return w != null && w > (a.umbral ?? 5);
+  }
+
+  _firmaAparatos() {
+    return (this._listaAparatos || []).map((a) => (this._activo(a) ? 1 : 0)).join('') + (this._demo && this._demo.aparatos ? 'd' : '');
+  }
+
+  _firmaPanel() {
+    if (!this._panelAbierto || !this._listaAparatos) return '';
+    return this._listaAparatos.filter((a) => a.habitacion === this._panelAbierto).map((a) => {
+      const w = this._vatios(a), e = this._ent(a), s = e && this._hass.states[e];
+      return `${w == null ? '' : Aparatos.vatios(w)}|${s ? s.state : ''}`;
+    }).join(';');
+  }
+
+  _pintarAparatos() {
+    if (!this._dibujoAparatos) return;
+    const demo = this._demo && this._demo.aparatos;  // la demo enciende todo (para ver la tele antes de tenerla en HA)
+    const activos = new Set(this._listaAparatos.filter((a) => demo || this._activo(a)).map((a) => a.id));
+    this._dibujoAparatos.poner(activos, this._nocheF ?? 1);
+  }
+
+  _filaAparato(a) {
+    const w = this._vatios(a), on = this._activo(a), e = this._ent(a), s = e && this._hass.states[e];
+    const MEDIA = { playing: 'reproduciendo', paused: 'en pausa', idle: 'parado', on: 'encendido', off: 'apagado', standby: 'en espera',
+      buffering: 'cargando', unavailable: 'no disponible', unknown: 'sin datos' };
+    let txt;
+    if (a.tipo === 'altavoz' || a.tipo === 'tele') txt = s ? (MEDIA[s.state] || s.state) : (e ? 'no disponible' : 'sin conectar a HA');
+    else if (a.tipo === 'mesa') txt = on ? 'moviéndose' : 'en reposo';
+    else if (a.tipo === 'aire') txt = on ? 'encendido' : 'en reposo';
+    else if (a.tipo === 'enchufe') txt = on ? '' : 'apagado';
+    else txt = on ? 'encendido' : 'apagado';
+    if (w != null && (on || w >= 0.5)) txt = (txt ? txt + ' · ' : '') + `${Aparatos.vatios(w)} W`;
+    const info = a.info || e;
+    return `<div class="luzfila${on ? ' on' : ''}"><div class="fila"${info ? ` data-info="${info}"` : ''}><span>${a.nombre}</span>
+            <span class="estado">${txt || '—'}</span></div></div>`;
+  }
+
   // ---------- tiempo ----------
   _siguienteDemo() {
     const DEMOS = [null, { estado: 'rainy' }, { estado: 'lightning-rainy', el: -12 }, { estado: 'snowy' }, { estado: 'fog' },
       { estado: 'cloudy' }, { estado: 'sunny', mes: 11, avion: true, nombre: 'Otoño', icono: '🍂' },
       { estado: 'sunny', el: 4, az: 245, nombre: 'Atardecer', icono: '🌇' },
-      { estado: 'clear-night', el: -15, mes: 7, nombre: 'Noche de verano', icono: '🦇' }];
+      { estado: 'clear-night', el: -15, mes: 7, nombre: 'Noche de verano', icono: '🦇' },
+      { estado: 'clear-night', el: -15, mes: 1, aparatos: true, nombre: 'Aparatos', icono: '🎵' }];
     this._demoIdx = ((this._demoIdx || 0) + 1) % DEMOS.length;
     this._demo = DEMOS[this._demoIdx];
     this._pintar();
@@ -379,9 +457,17 @@ class Home3dCard extends HTMLElement {
       return `<div class="luzfila${on ? ' on' : ''}"><div class="fila" data-e="${l.entidad}"><span>${l.nombre}</span>
               <span class="estado">${on ? (pct != null ? `${pct} %` : 'encendida') + (a.color_temp_kelvin ? ` · ${a.color_temp_kelvin} K` : '') : 'apagada'}</span></div>${ctrl}</div>`;
     }).join('');
-    div.innerHTML = `<span class="cerrar">×</span><h3>${hab.nombre}</h3><div class="lista">${filas || '<div class="estado">Sin luces en Home Assistant</div>'}</div>`;
+    const aps = (this._listaAparatos || []).filter((a) => a.habitacion === clave);
+    const ws = aps.map((a) => this._vatios(a)).filter((w) => w != null);
+    const total = ws.length ? `<span class="total">${Aparatos.vatios(ws.reduce((x, y) => x + y, 0))} W ahora</span>` : '';
+    const filasAp = aps.map((a) => this._filaAparato(a)).join('');
+    const cuerpo = filasAp
+      ? `<div class="seccion">Aparatos</div>${filasAp}${filas ? `<div class="seccion">Luces</div>${filas}` : ''}`
+      : filas || '<div class="estado">Sin luces en Home Assistant</div>';
+    div.innerHTML = `<span class="cerrar">×</span><h3>${hab.nombre}${total}</h3><div class="lista">${cuerpo}</div>`;
     div.querySelector('.cerrar').addEventListener('click', () => this._cerrarPanel());
-    div.querySelectorAll('.fila').forEach((f) => f.addEventListener('click', () => this._alternar(f.dataset.e)));
+    div.querySelectorAll('.fila[data-e]').forEach((f) => f.addEventListener('click', () => this._alternar(f.dataset.e)));
+    div.querySelectorAll('.fila[data-info]').forEach((f) => f.addEventListener('click', () => this._masInfo(f.dataset.info)));
     div.querySelectorAll('input[type=range]').forEach((r) => {
       r.addEventListener('pointerdown', () => { this._arrastrando = true; });
       r.addEventListener('change', () => {
@@ -696,6 +782,171 @@ class Clima {
         t: 0, fase: Math.random() * 6, s: W * (0.008 + Math.random() * 0.003) });
       this._arrancar(); this._programarPajaros();
     }, (this.pajaros.length ? 15000 : 4000) + Math.random() * 20000);
+  }
+}
+
+/*
+ * Aparatos dibujados en vivo (no están en los renders): pantallas encendidas que iluminan lo que
+ * tienen delante, la tele cambiando de color, notas que suben de los altavoces que suenan, flechas
+ * de la mesa elevable mientras se mueve y el aire acondicionado soplando.
+ * Dos lienzos: uno de luz (se suma a la imagen, como las capas de luz) y otro normal (notas, flechas, el split).
+ * Posiciones en render/salida/aparatos.json (tools/aparatos.py las proyecta desde casa/aparatos.json).
+ */
+class Aparatos {
+  constructor(escena, lista, cam) {
+    this.escena = escena; this.lista = lista;
+    this.cam = cam || { arriba: [0, -0.04] };
+    this.cvL = document.createElement('canvas'); this.cvL.className = 'aparatos brillo'; escena.appendChild(this.cvL);
+    this.cvO = document.createElement('canvas'); this.cvO.className = 'aparatos'; escena.appendChild(this.cvO);
+    this.luz = this.cvL.getContext('2d'); this.obj = this.cvO.getContext('2d');
+    this.activos = new Set(); this.notas = []; this.t = 0; this.noche = 1; this.proxima = {};
+    new ResizeObserver(() => { this._medir(); this._dibujar(0); }).observe(escena);
+    document.addEventListener('visibilitychange', () => this._arrancar());
+    this._medir();
+  }
+
+  static vatios(w) {  // 4,5 · 37 · 650
+    return w < 10 ? (Math.round(w * 10) / 10).toLocaleString('es-ES') : String(Math.round(w));
+  }
+
+  _medir() {
+    const r = this.escena.getBoundingClientRect(); if (!r.width) return;
+    const escala = Math.min(1, 1100 / r.width) * Math.min(2, window.devicePixelRatio || 1);
+    this.W = this.cvL.width = this.cvO.width = Math.round(r.width * escala);
+    this.H = this.cvL.height = this.cvO.height = Math.round(r.height * escala);
+  }
+
+  poner(activos, noche) {
+    this.activos = activos; this.noche = noche;
+    this._arrancar();
+    if (!this._raf) this._dibujar(0);
+  }
+
+  _animado() {  // las pantallas solas no se mueven: basta con dibujarlas una vez
+    return !document.hidden && (this.notas.length ||
+      this.lista.some((a) => this.activos.has(a.id) && ['tele', 'altavoz', 'mesa', 'aire'].includes(a.tipo)));
+  }
+
+  _arrancar() {
+    if (this._raf || !this._animado()) return;
+    let antes = performance.now();
+    const paso = (ahora) => {
+      const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora;
+      this._dibujar(dt);
+      this._raf = this._animado() ? requestAnimationFrame(paso) : null;
+      if (!this._raf) this._dibujar(0);
+    };
+    this._raf = requestAnimationFrame(paso);
+  }
+
+  _p([u, v]) { return [u * this.W, v * this.H]; }
+
+  _dibujar(dt) {
+    if (!this.W) return;
+    const L = this.luz, O = this.obj;
+    L.clearRect(0, 0, this.W, this.H); O.clearRect(0, 0, this.W, this.H);
+    this.t += dt;
+    const k = 0.4 + 0.6 * this.noche;  // de día la luz de una pantalla apenas se nota
+    for (const a of this.lista) {
+      if (!this.activos.has(a.id)) continue;
+      if (a.tipo === 'pantalla') this._pantalla(a, [150, 190, 255], k);
+      else if (a.tipo === 'tele') {
+        const tt = this.t, h = 215 + 30 * Math.sin(tt * 0.45) + 12 * Math.sin(tt * 1.7);  // la imagen cambia de color
+        const parpadeo = 0.88 + 0.12 * Math.sin(tt * 7.3) * Math.sin(tt * 2.9);
+        this._pantalla(a, Aparatos._hsl(h, 0.55, 0.68), k * parpadeo);
+      } else if (a.tipo === 'altavoz' && dt) this._soltarNotas(a, dt);
+      else if (a.tipo === 'mesa' && a.punto) this._flechas(a.punto);
+      else if (a.tipo === 'aire') this._aire(a, k);
+    }
+    this._notas(dt);
+  }
+
+  static _hsl(h, s, l) {
+    const f = (n) => { const q = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); return 255 * (l - a * Math.max(-1, Math.min(q - 3, 9 - q, 1))); };
+    return [f(0), f(8), f(4)].map(Math.round);
+  }
+
+  _pantalla(a, [r, g, b], k) {
+    const L = this.luz;
+    if (a.brillo) {  // luz que cae delante (escritorio, alfombra)
+      const [cx, cy] = this._p(a.brillo.c), rx = a.brillo.rx * this.W * 2.1, ry = a.brillo.ry * this.H * 2.1;
+      L.save(); L.translate(cx, cy); L.scale(1, ry / rx);
+      const gr = L.createRadialGradient(0, 0, 0, 0, 0, rx);
+      gr.addColorStop(0, `rgba(${r * 0.6},${g * 0.65},${b * 0.8},${k})`); gr.addColorStop(0.45, `rgba(${r * 0.3},${g * 0.35},${b * 0.5},${0.6 * k})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      L.fillStyle = gr; L.fillRect(-rx, -rx, rx * 2, rx * 2); L.restore();
+    }
+    if (a.pantalla) {
+      const pts = a.pantalla.map((p) => this._p(p));
+      L.save(); L.beginPath(); L.moveTo(...pts[0]); for (const p of pts.slice(1)) L.lineTo(...p); L.closePath();
+      L.shadowColor = `rgba(${r},${g},${b},${k})`; L.shadowBlur = this.W * 0.012;
+      L.fillStyle = `rgba(${r},${g},${b},${0.85 * k})`; L.fill(); L.fill(); L.restore();
+    }
+  }
+
+  _soltarNotas(a, dt) {
+    for (let i = 0; i < (a.emisores || []).length; i++) {
+      const clave = `${a.id}${i}`;
+      this.proxima[clave] = (this.proxima[clave] ?? Math.random() * 0.6) - dt;
+      if (this.proxima[clave] > 0) continue;
+      this.proxima[clave] = 0.8 + Math.random() * 0.7;
+      this.notas.push({ e: a.emisores[i], t: 0, dur: 2.4 + Math.random() * 0.8, lado: Math.random() < 0.5 ? -1 : 1,
+                        fase: Math.random() * 6, g: Math.random() < 0.6 ? '♪' : '♫', s: 0.8 + Math.random() * 0.4 });
+    }
+  }
+
+  _notas(dt) {
+    if (!this.notas.length) return;
+    const O = this.obj, W = this.W, H = this.H, metro = Math.abs(this.cam.arriba[1]) * H;
+    O.save(); O.textAlign = 'center'; O.textBaseline = 'middle';
+    O.shadowColor = 'rgba(0,0,0,0.65)'; O.shadowBlur = W * 0.004; O.shadowOffsetY = W * 0.001;
+    for (let i = this.notas.length - 1; i >= 0; i--) {
+      const n = this.notas[i]; n.t += dt;
+      if (n.t >= n.dur) { this.notas.splice(i, 1); continue; }
+      const f = n.t / n.dur, [x0, y0] = this._p(n.e);
+      const x = x0 + n.lado * W * (0.004 + 0.008 * f) + Math.sin(n.t * 3 + n.fase) * W * 0.003;
+      const y = y0 - metro * (0.15 + 0.75 * f);
+      O.globalAlpha = Math.min(1, f / 0.15) * Math.min(1, (1 - f) / 0.35);
+      O.font = `600 ${Math.round(W * 0.02 * n.s)}px system-ui, "Segoe UI Symbol", "Noto Sans Symbols", sans-serif`;
+      O.fillStyle = n.g === '♪' ? '#ffe2a8' : '#ffc878';
+      O.fillText(n.g, x, y);
+    }
+    O.restore();
+  }
+
+  _flechas(punto) {  // ↑↓ que suben y bajan mientras el motor de la mesa consume
+    const O = this.obj, [x, y] = this._p(punto), s = this.W * 0.009, d = Math.sin(this.t * 5) * s * 0.35;
+    O.save(); O.fillStyle = '#fff'; O.strokeStyle = '#fff'; O.lineWidth = s * 0.28; O.lineCap = 'round';
+    O.shadowColor = 'rgba(0,0,0,0.7)'; O.shadowBlur = s * 0.5;
+    const flecha = (cx, cy, dir) => {
+      O.beginPath(); O.moveTo(cx, cy + dir * s); O.lineTo(cx, cy - dir * s * 0.4); O.stroke();
+      O.beginPath(); O.moveTo(cx, cy - dir * s); O.lineTo(cx - s * 0.5, cy - dir * s * 0.3); O.lineTo(cx + s * 0.5, cy - dir * s * 0.3); O.closePath(); O.fill();
+    };
+    flecha(x - s * 0.45, y - d, 1); flecha(x + s * 0.45, y + d, -1);
+    O.restore();
+  }
+
+  _aire(a, k) {
+    k = Math.max(k, 0.8);  // también de día
+    const L = this.luz, O = this.obj, W = this.W;
+    for (const [i, camino] of (a.flujo || []).entries()) {  // corrientes frías que salen del split y caen
+      const pts = camino.map((p) => this._p(p)), fin = pts[pts.length - 1];
+      const gr = L.createLinearGradient(...pts[0], ...fin);
+      gr.addColorStop(0, `rgba(140,205,255,${0.85 * k})`); gr.addColorStop(1, 'rgba(140,205,255,0)');
+      L.save(); L.strokeStyle = gr; L.lineWidth = W * 0.0028; L.lineCap = 'round';
+      L.setLineDash([W * 0.018, W * 0.012]); L.lineDashOffset = -this.t * W * 0.05 - i * W * 0.007;
+      L.beginPath(); L.moveTo(...pts[0]); for (const p of pts.slice(1)) L.lineTo(...p); L.stroke();
+      L.setLineDash([]); L.globalAlpha = 0.25; L.lineWidth = W * 0.006; L.stroke(); L.restore();
+    }
+    if (a.cuerpo) {  // el split (en el modelo 3D no está)
+      const pts = a.cuerpo.map((p) => this._p(p));
+      O.save(); O.beginPath(); O.moveTo(...pts[0]); for (const p of pts.slice(1)) O.lineTo(...p); O.closePath();
+      O.fillStyle = '#e8ebee'; O.strokeStyle = '#8e959c'; O.lineWidth = Math.max(1, W / 900);
+      O.shadowColor = 'rgba(0,0,0,0.5)'; O.shadowBlur = W * 0.004; O.fill(); O.shadowBlur = 0; O.stroke();
+      const [p0, p1, p2, p3] = pts, m = 0.3;  // rejilla de salida, abajo
+      O.strokeStyle = '#5d646b'; O.beginPath();
+      O.moveTo(p0[0] + (p3[0] - p0[0]) * m, p0[1] + (p3[1] - p0[1]) * m); O.lineTo(p1[0] + (p2[0] - p1[0]) * m, p1[1] + (p2[1] - p1[1]) * m);
+      O.stroke(); O.restore();
+    }
   }
 }
 
