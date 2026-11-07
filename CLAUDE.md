@@ -23,8 +23,9 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Tarjeta v0.6.0: aparatos en vivo (`render/salida/aparatos.json`): pantallas de los monitores y brillo en el escritorio,
   tele (color cambiante), notas en Denon y Sonos al reproducir, flechas de la mesa al moverse, aire soplando; el panel
   de la habitación muestra cada aparato con sus W y el total. Demo «Aparatos» en la pastilla del tiempo.
-- ⏳ Siguiente: LG C1 (integración LG webOS; encender la tele y aceptar el aviso) → `devices: {tele: media_player.…}` en la
-  tarjeta o `estado` en `casa/aparatos.json`. Después: Alexa Devices (temperatura por habitación).
+- ✅ Tele LG OLED65C1 en HA (LG webOS, 192.168.1.52, área Salón): `media_player.television` y `switch.television_pantalla`;
+  en `casa/aparatos.json` y en el panel `dashboard-diorama` (`devices: {tele: media_player.television}`).
+- ⏳ Siguiente: Alexa Devices (temperatura por habitación).
 
 ## Cómo trabajar desde el escritorio
 - Para hablar con HA: navegador (Claude in Chrome). Desde el portátil de empresa la terminal no llega a HA; desde el Mac sí debería.

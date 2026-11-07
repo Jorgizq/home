@@ -33,7 +33,7 @@
     },
     {
       "id": "tele", "nombre": "Televisión", "tipo": "tele", "habitacion": "salon",
-      "estado": null, "nota": "LG C1: poner aquí su media_player cuando esté en HA (o en la tarjeta: devices: {tele: media_player.xxx})",
+      "estado": "media_player.television", "info": "media_player.television", "nota": "LG OLED65C1 (integración LG webOS, 192.168.1.52)",
       "pantalla": { "x": 350, "y": [1042, 1148], "z": [67, 123] }, "brillo": { "x": 430, "y": 1095, "z": 0, "r": 90 }
     },
     {
