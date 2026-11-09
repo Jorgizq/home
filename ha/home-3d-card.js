@@ -19,6 +19,7 @@
  *   effects: true          # lluvia, nieve, nubes, niebla, tormenta, hojas, golondrinas, murciélagos y aviones
  *   devices:               # aparatos dibujados en vivo (render/salida/aparatos.json): monitores, tele, música, mesa, aire
  *     tele: media_player.lg_c1   # cambia la entidad de un aparato por su id · devices: false = sin aparatos
+ *   energy: /dashboard-diorama/energia   # pastilla «⚡ … € hoy» que abre la página de energía (custom:home-energy-card)
  *   fit: contain           # contain = cabe entera en la pantalla (por defecto) · cover = llena la pantalla recortando bordes
  *                          # · width = ocupa todo el ancho (como antes)
  *   header: 56px           # alto de la barra de HA que hay que descontar (0 con kiosk-mode)
@@ -27,7 +28,7 @@
  *                          #   Para editar el panel en ese dispositivo, añade ?editar a la dirección.
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.6.0';
+const VERSION = '0.7.0';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -45,6 +46,10 @@ class Home3dCard extends HTMLElement {
     this._hass = hass;
     this._kiosko();
     if (!this._indice) return;
+    if (this._pastillaEnergia) {
+      this._iniciarEnergia();
+      if (Date.now() - (this._energiaPintada || 0) > 30e3) this._pintarEnergia();
+    }
     // Solo redibuja si ha cambiado algo que la tarjeta usa (HA manda muchas actualizaciones por segundo).
     const firma = this._entidades().map((e) => {
       const s = hass.states[e];
@@ -112,7 +117,9 @@ class Home3dCard extends HTMLElement {
         .panel .seccion { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; opacity: .5; padding: 8px 0 2px; }
         canvas.clima { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .destello { position: absolute; inset: 0; background: #dfe8ff; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
-        .tiempo { position: absolute; left: 2%; bottom: 3%; display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+        .pastillas { position: absolute; left: 2%; bottom: 3%; display: flex; gap: 8px; }
+        .tiempo.energia b { color: #ffc46b; }
+        .tiempo { display: flex; align-items: center; gap: 8px; padding: 6px 12px;
                   border-radius: 999px; border: 0; background: rgba(20,20,22,.6); color: #eee; cursor: pointer;
                   font: 600 14px/1 var(--paper-font-body1_-_font-family, system-ui, sans-serif); backdrop-filter: blur(6px); }
         .tiempo .icono-t { font-size: 18px; } .tiempo .demo { font-size: 11px; font-weight: 500; color: #ffc46b; }
@@ -155,7 +162,16 @@ class Home3dCard extends HTMLElement {
     this._luces = {};  // entidad → <img>, solo mientras está encendida (las imágenes ocultas también gastan memoria)
     if (this._config.rooms) this._montarZonas();
     if (this._config.icons) this._montarIconos();
-    if (this._pastilla) card.appendChild(this._pastilla);  // pegada a la pantalla, no a la imagen: siempre visible
+    if (this._config.energy) {
+      this._pastillaEnergia = document.createElement('button'); this._pastillaEnergia.className = 'tiempo energia';
+      this._pastillaEnergia.innerHTML = '<span class="icono-t">⚡</span><span>Energía</span>';
+      this._pastillaEnergia.addEventListener('click', (ev) => { ev.stopPropagation(); navegar(this._config.energy); });
+    }
+    if (this._pastilla || this._pastillaEnergia) {  // pegadas a la pantalla, no a la imagen: siempre visibles
+      const caja = document.createElement('div'); caja.className = 'pastillas';
+      for (const p of [this._pastilla, this._pastillaEnergia]) if (p) caja.appendChild(p);
+      card.appendChild(caja);
+    }
     this._firma = '';
     this._kioskoAplicado = undefined;
     if (this._hass) this.hass = this._hass;
@@ -398,6 +414,36 @@ class Home3dCard extends HTMLElement {
     const info = a.info || e;
     return `<div class="luzfila${on ? ' on' : ''}"><div class="fila"${info ? ` data-info="${info}"` : ''}><span>${a.nombre}</span>
             <span class="estado">${txt || '—'}</span></div></div>`;
+  }
+
+  // ---------- pastilla de energía (lee la tarifa de la tarjeta de energía de esa página) ----------
+  async _iniciarEnergia() {
+    if (this._energiaIniciada || !this._hass) return;
+    this._energiaIniciada = true;
+    let cfg = null;
+    try {
+      const [, panel, vista] = this._config.energy.split('?')[0].split('/');
+      const lv = await this._hass.callWS({ type: 'lovelace/config', url_path: panel });
+      for (const v of lv.views || []) {
+        if (vista && v.path !== vista) continue;
+        cfg = [...(v.cards || []), ...(v.sections || []).flatMap((s) => s.cards || [])].find((c) => c.type === 'custom:home-energy-card');
+        if (cfg) break;
+      }
+    } catch (e) { /* sin tarifa: solo lo medido */ }
+    this._energia = new Energia({ ...(cfg || {}), devices: { ...(cfg && cfg.devices), ...this._config.devices } }, this._listaAparatos);
+    const ciclo = async () => {
+      if (!this.isConnected && this._energia.cargadoEn) return;
+      try { await this._energia.cargar(this._hass); this._pintarEnergia(); } catch (e) { /* se reintenta en el siguiente ciclo */ }
+    };
+    ciclo(); setInterval(ciclo, 5 * 60e3);
+  }
+
+  _pintarEnergia() {
+    if (!this._energia || !this._energia.cargadoEn) return;
+    this._energiaPintada = Date.now();
+    this._energia.hass = this._hass;
+    const r = this._energia.resumen('hoy');
+    this._pastillaEnergia.innerHTML = `<span class="icono-t">⚡</span><span><b>${Energia.euros(r.total, 2)}</b> hoy</span>`;
   }
 
   // ---------- tiempo ----------
@@ -950,7 +996,456 @@ class Aparatos {
   }
 }
 
+/*
+ * Energía: cuánto cuesta cada aparato con la tarifa de la luz.
+ * Lo medido sale de las estadísticas de HA (sensores *_energia de las regletas); la tele se estima con las
+ * horas que está encendida y los Echo con un consumo fijo; el «fondo sin medir» es lo que la casa gasta
+ * siempre (base_w, de la curva horaria de la distribuidora) menos lo que ya se mide; el «resto sin medir»,
+ * lo que falta para llegar al consumo de la factura (yearly_kwh) o del contador de la casa (total_energy).
+ */
+const HORA = 36e5, DIA = 864e5;
+
+function navegar(url) {  // cambiar de página dentro de HA sin recargar
+  const editar = /[?&]editar\b/.test(location.search) && !url.includes('?') ? '?editar' : '';
+  history.pushState(null, '', url + editar);
+  window.dispatchEvent(new CustomEvent('location-changed', { detail: { replace: false } }));
+}
+
+class Energia {
+  constructor(cfg, lista) {
+    this.cfg = { price: 0.215, fixed_day: 0, base_w: 0, yearly_kwh: 0, ...cfg };
+    this.lista = (lista || []).filter((a) => (a.potencia && a.potencia.length) || a.estimado_w);
+  }
+
+  static sensores(a) { return a.energia || (a.potencia || []).map((s) => s.replace(/_potencia$/, '_energia')); }
+  static euros(x, dec) {
+    const d = dec ?? (Math.abs(x) < 10 ? 2 : 0);
+    return x.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) + ' €';
+  }
+  static kwh(k) {
+    const d = k < 1 ? 2 : k < 10 ? 1 : 0;
+    return k.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d, useGrouping: 'always' }) + ' kWh';
+  }
+
+  ent(a) { const d = this.cfg.devices; return (d && d[a.id]) || a.estado || null; }
+  medido(a) { return !!(a.potencia && a.potencia.length); }
+
+  async cargar(hass) {
+    this.hass = hass;
+    const ahora = new Date(), hoy = new Date(ahora); hoy.setHours(0, 0, 0, 0);
+    const mes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const ids = [...new Set(this.lista.flatMap((a) => (this.medido(a) ? Energia.sensores(a) : [])))];
+    if (this.cfg.total_energy) ids.push(this.cfg.total_energy);
+    const est = (desde, periodo) => (ids.length ? hass.callWS({ type: 'recorder/statistics_during_period', start_time: desde.toISOString(),
+      statistic_ids: ids, period: periodo, types: ['change'] }) : Promise.resolve({}));
+    const teles = this.lista.filter((a) => a.tipo === 'tele' && this.ent(a)).map((a) => this.ent(a));
+    const desdeHist = new Date(Math.min(+mes, +hoy - 10 * DIA));
+    const [horas, dias, hist] = await Promise.all([
+      est(new Date(+hoy - 7 * DIA), 'hour'), est(new Date(+hoy - 366 * DIA), 'day'),
+      teles.length ? hass.callWS({ type: 'history/history_during_period', start_time: desdeHist.toISOString(), entity_ids: teles,
+        minimal_response: true, no_attributes: true }).catch(() => ({})) : Promise.resolve({})]);
+    const lista = (r, id) => (r[id] || []).map((x) => ({ t: +new Date(typeof x.start === 'number' ? x.start : Date.parse(x.start)), c: x.change || 0 }));
+    this.horas = {}; this.dias = {};
+    for (const id of ids) { this.horas[id] = lista(horas, id); this.dias[id] = lista(dias, id); }
+    this.hist = {};
+    for (const [e, v] of Object.entries(hist || {})) {
+      this.hist[e] = v.map((x) => ({ t: (x.lu ?? x.last_updated ?? x.last_changed) * (x.lu ? 1000 : 1), on: Energia._enciende(x.s ?? x.state) }));
+      if (this.hist[e][0] && !Number.isFinite(this.hist[e][0].t)) this.hist[e][0].t = +desdeHist;
+    }
+    this.ultimaHora = Math.max(0, ...Object.values(this.horas).flat().map((x) => x.t + HORA));
+    this.cargadoEn = Date.now();
+  }
+
+  static _enciende(s) { return !['off', 'standby', 'unavailable', 'unknown', undefined].includes(s); }
+
+  // vatios ahora mismo (lo medido) y el estimado de lo que no se mide
+  vatiosAhora(a) {
+    const h = this.hass;
+    if (this.medido(a)) return a.potencia.reduce((t, e) => { const v = h && h.states[e] ? parseFloat(h.states[e].state) : NaN; return t + (Number.isFinite(v) ? v : 0); }, 0);
+    if (a.tipo === 'tele') { const s = h && h.states[this.ent(a)]; return s && Energia._enciende(s.state) ? a.estimado_w : 0; }
+    return a.estimado_w || 0;
+  }
+
+  _sumar(serie, desde, hasta) { return (serie || []).reduce((t, x) => t + (x.t >= desde && x.t < hasta ? x.c : 0), 0); }
+
+  // horas encendida de la tele entre dos instantes (según el historial de HA)
+  _horasOn(e, desde, hasta) {
+    const v = this.hist[e]; if (!v || !v.length) return null;
+    let h = 0;
+    for (let i = 0; i < v.length; i++) {
+      if (!v[i].on) continue;
+      const a = Math.max(v[i].t, desde), b = Math.min(i + 1 < v.length ? v[i + 1].t : Date.now(), hasta);
+      if (b > a) h += (b - a) / HORA;
+    }
+    return h;
+  }
+
+  // kWh de un aparato entre dos instantes
+  kwhAparato(a, desde, hasta, serie = 'auto') {
+    if (this.medido(a)) {
+      const usarHoras = serie === 'hora' || (serie === 'auto' && desde >= Date.now() - 7 * DIA);
+      let t = 0;
+      for (const id of Energia.sensores(a)) t += this._sumar(usarHoras ? this.horas[id] : this.dias[id], desde, hasta);
+      if (hasta >= Date.now() - 60e3 && this.ultimaHora && serie !== 'dia') t += this.vatiosAhora(a) * Math.max(0, Date.now() - this.ultimaHora) / HORA / 1000;
+      return t;
+    }
+    const horas = (hasta - desde) / HORA;
+    if (a.tipo === 'tele') { const on = this._horasOn(this.ent(a), desde, hasta); return ((on ?? 0) * a.estimado_w) / 1000; }
+    return (horas * (a.estimado_w || 0)) / 1000;
+  }
+
+  // kWh al año: media diaria de todo lo registrado × 365
+  kwhAnual(a) {
+    if (this.medido(a)) {
+      let total = 0, primero = Infinity;
+      for (const id of Energia.sensores(a)) { for (const x of this.dias[id] || []) { total += x.c; primero = Math.min(primero, x.t); } }
+      const dias = (Date.now() - primero) / DIA;
+      return dias > 0.25 ? (total / dias) * 365 : 0;
+    }
+    if (a.tipo === 'tele') {
+      const v = this.hist[this.ent(a)]; if (!v || !v.length) return 0;
+      const desde = v[0].t, dias = (Date.now() - desde) / DIA;
+      return dias > 0.25 ? ((this._horasOn(this.ent(a), desde, Date.now()) * a.estimado_w) / 1000 / dias) * 365 : 0;
+    }
+    return (a.estimado_w || 0) * 8.76;
+  }
+
+  // lo que la casa gasta siempre y no se mide: base_w menos el mínimo de cada aparato medido y lo estimado fijo
+  fondoW() {
+    let medido = 0;
+    for (const a of this.lista) {
+      if (this.medido(a)) {
+        const porHora = {};
+        for (const id of Energia.sensores(a)) for (const x of this.horas[id] || []) porHora[x.t] = (porHora[x.t] || 0) + x.c;
+        const v = Object.values(porHora);
+        if (v.length) medido += Math.min(...v) * 1000;
+      } else if (a.tipo !== 'tele') medido += a.estimado_w || 0;
+    }
+    return Math.max(0, this.cfg.base_w - medido);
+  }
+
+  // filas de un periodo: hoy | mes | anio
+  resumen(vista) {
+    const ahora = Date.now(), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const desde = vista === 'hoy' ? +hoy : vista === 'mes' ? +new Date(hoy.getFullYear(), hoy.getMonth(), 1) : ahora - 365 * DIA;
+    const horas = vista === 'anio' ? 8760 : (ahora - desde) / HORA;
+    const P = this.cfg.price, fW = this.fondoW();
+    const filas = this.lista.map((a) => {
+      const k = vista === 'anio' ? this.kwhAnual(a) : this.kwhAparato(a, desde, ahora);
+      const w = this.vatiosAhora(a);
+      const sub = this.medido(a) ? 'medido' : a.tipo === 'tele' ? `estimado: ${a.estimado_w} W × horas encendida` : `estimado: ${a.estimado_w} W`;
+      return { id: a.id, nombre: a.nombre, grupo: a.grupo, habitacion: a.habitacion, kwh: k, eur: k * P, sub, w, medido: this.medido(a), tele: a.tipo === 'tele' };
+    });
+    const zonas = {};  // por habitación (antes de juntar grupos, que pueden estar en sitios distintos)
+    for (const f of filas) if (f.habitacion) { const z = zonas[f.habitacion] || (zonas[f.habitacion] = { kwh: 0, w: 0 }); z.kwh += f.kwh; z.w += f.w || 0; }
+    const conocido = filas.reduce((t, f) => t + f.kwh, 0) + (fW * horas) / 1000;
+    let totalKwh;
+    if (this.cfg.total_energy && vista !== 'anio') totalKwh = this.kwhAparato({ potencia: ['x'], energia: [this.cfg.total_energy] }, desde, ahora);
+    else totalKwh = (this.cfg.yearly_kwh / 8760) * horas;
+    filas.push({ id: 'fondo', nombre: 'Fondo sin medir', sub: `nevera, router y esperas (~${Math.round(fW)} W siempre)`, kwh: (fW * horas) / 1000, sinMedir: true });
+    filas.push({ id: 'resto', nombre: 'Resto sin medir', sub: vista === 'anio' ? 'cocina, lavadora, luces, horno…' : 'cocina, lavadora, luces… (estimado)',
+      kwh: Math.max(0, totalKwh - conocido), sinMedir: true });
+    // aparatos del mismo grupo (los dos monitores, los dos Echo) en una sola fila
+    const juntas = [];
+    for (const f of filas) {
+      const g = f.grupo && juntas.find((x) => x.grupo === f.grupo);
+      if (g) { g.kwh += f.kwh; g.w += f.w || 0; g.ids.push(f.id); } else juntas.push({ ...f, nombre: f.grupo || f.nombre, ids: [f.id] });
+    }
+    for (const f of juntas) {
+      f.eur = f.kwh * P;
+      if (f.medido) f.sub = `medido · ${Aparatos.vatios(f.w)} W ahora`;
+      else if (f.tele && f.w) f.sub += ' · encendida ahora';
+    }
+    for (const z of Object.values(zonas)) z.eur = z.kwh * P;
+    juntas.sort((a, b) => b.kwh - a.kwh);
+    const kwh = Math.max(totalKwh, conocido);
+    const fijo = this.cfg.fixed_day * (horas / 24);
+    return { filas: juntas, zonas, kwh, energia: kwh * P, fijo, total: kwh * P + fijo, horas, fondoW: fW };
+  }
+
+  // barras del gráfico: [{etiqueta, partes: {id: kWh}, futuro}] (hoy: horas · mes: días)
+  barras(vista) {
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const fW = this.fondoW(), out = [];
+    const tramo = (desde, hasta, etiqueta) => {
+      const partes = {};
+      if (desde < Date.now()) {
+        const fin = Math.min(hasta, Date.now());
+        for (const a of this.lista) partes[a.id] = this.kwhAparato(a, desde, fin, vista === 'hoy' ? 'hora' : 'dia');
+        partes.fondo = (fW * (fin - desde)) / HORA / 1000;
+      }
+      out.push({ etiqueta, partes, futuro: desde >= Date.now() });
+    };
+    if (vista === 'hoy') for (let h = 0; h < 24; h++) tramo(+hoy + h * HORA, +hoy + (h + 1) * HORA, h % 3 ? '' : String(h).padStart(2, '0'));
+    else {
+      const n = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+      for (let d = 1; d <= n; d++) { const t = +new Date(hoy.getFullYear(), hoy.getMonth(), d); tramo(t, t + DIA, d === 1 || d % 5 === 0 ? String(d) : ''); }
+    }
+    return out;
+  }
+
+  // meses del año: facturas reales (bills) y el mes en curso
+  meses() {
+    const hoy = new Date(), out = [];
+    const facturas = Object.fromEntries((this.cfg.bills || []).map((b) => [b.month, b]));
+    const NOM = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+      const clave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const f = facturas[clave];
+      if (f) out.push({ etiqueta: NOM[d.getMonth()], eur: f.eur, energia: f.kwh * this.cfg.price, real: true });
+      else if (i === 0) { const r = this.resumen('mes'); out.push({ etiqueta: NOM[d.getMonth()], eur: r.total, energia: r.energia, enCurso: true }); }
+      else out.push({ etiqueta: NOM[d.getMonth()], eur: 0, energia: 0 });
+    }
+    return out;
+  }
+}
+
+const COLORES = { dock: '#ffb547', tele: '#7aa7ff', aire: '#7fd6ff', monitor_izquierdo: '#c79bff', monitor_derecho: '#a98bff',
+  echo_dot: '#ff8fb1', echo_show: '#ff6f9a', sonos: '#c8e46a', mesa: '#9be3b4', fondo: '#8a8f98', resto: '#5d626b' };
+const color = (id, i = 0) => COLORES[id] || ['#ffd27a', '#6fe0c8', '#f59f7a', '#b0c4ff'][i % 4];
+
+/*
+ * Página de energía (una vista aparte del panel):
+ *   type: custom:home-energy-card
+ *   path: /local/diorama/render/salida/
+ *   back: /dashboard-diorama/casa     # botón «← Casa»
+ *   kiosk: tablet                      # como en el diorama
+ *   price: 0.215                       # €/kWh con impuestos
+ *   fixed_day: 1.136                   # €/día fijo con impuestos (potencia, contador, bono social, seguro)
+ *   yearly_kwh: 1970                   # consumo anual de la casa (facturas)
+ *   base_w: 80                         # consumo de fondo de toda la casa (curva horaria de la distribuidora)
+ *   tariff: Iberdrola Plan Estable · 2.0TD · 4,6 kW
+ *   billed: { 2025: 602.53 }           # facturado por año (texto bajo el total)
+ *   bills: [{ month: 2026-10, kwh: 183, eur: 75.12 }]
+ *   savings: [{ text: Bajar la potencia a 3,5 kW, eur: -87 }]
+ *   total_energy: sensor.casa_energia  # opcional: contador de toda la casa (sustituye a la estimación del resto)
+ *   devices: { tele: media_player.television }
+ * En el diorama, `energy: /dashboard-diorama/energia` añade la pastilla «⚡ … € hoy» que abre esta página.
+ */
+class HomeEnergyCard extends HTMLElement {
+  setConfig(config) {
+    if (!config.path) throw new Error('Falta "path" (carpeta con indice.json y aparatos.json)');
+    this._config = { back: null, ...config };
+    this._path = config.path.endsWith('/') ? config.path : config.path + '/';
+    this._vista = this._vista || 'hoy';
+    if (!this._root) this._montar();
+    this._cargar();
+  }
+
+  getCardSize() { return 10; }
+
+  set hass(hass) {
+    const primera = !this._hass;
+    this._hass = hass;
+    this._kiosko();
+    if (!this._modelo) return;
+    this._modelo.hass = hass;
+    if (primera || Date.now() - (this._modelo.cargadoEn || 0) > 5 * 60e3) this._actualizar();
+    else if (Date.now() - (this._pintadoEn || 0) > 15e3) this._pintar();  // los vatios de ahora, sin volver a pedir datos
+  }
+
+  connectedCallback() { if (this._modelo && this._hass) this._actualizar(); }
+
+  _montar() {
+    this._root = this.attachShadow({ mode: 'open' });
+    this._root.innerHTML = `<style>
+      :host { display: block; --naranja: #ffb547; --txt: #f3f0ea; --suave: rgba(243,240,234,.58); --linea: rgba(255,255,255,.08); --tarjeta: rgba(255,255,255,.035); }
+      ha-card { height: calc(100vh - var(--cabecera, 56px)); height: calc(100dvh - var(--cabecera, 56px)); overflow: hidden; position: relative; color: var(--txt);
+                background: radial-gradient(1200px 700px at 20% 0%, #1a1d24, #0a0c10 70%); border: 0; border-radius: 0;
+                font: 15px/1.35 var(--paper-font-body1_-_font-family, "Segoe UI", system-ui, sans-serif); touch-action: pan-y; user-select: none; }
+      .pag { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(300px, 34%) 1fr; grid-template-rows: auto 1fr;
+             gap: 1.6vh 1.4vw; padding: 2.4vh 2.2vw; }
+      .sup { grid-column: 1 / 3; display: flex; align-items: center; gap: 18px; }
+      .volver { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 999px; padding: 8px 16px 8px 12px; color: var(--txt); font: inherit; cursor: pointer; }
+      .titulo { font-size: 24px; font-weight: 600; }
+      .tabs { display: flex; gap: 6px; background: rgba(255,255,255,.06); border-radius: 999px; padding: 4px; margin: 0 auto; }
+      .tabs button { padding: 7px 24px; border-radius: 999px; border: 0; background: none; color: var(--suave); font: inherit; cursor: pointer; }
+      .tabs button.on { background: var(--naranja); color: #1b1206; font-weight: 600; }
+      .tarifa { font-size: 13px; color: var(--suave); text-align: right; }
+      .col { display: flex; flex-direction: column; gap: 1.6vh; min-height: 0; }
+      .card { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 18px; padding: 2vh 1.5vw; position: relative; min-height: 0; }
+      h1 { font-size: clamp(40px, 6.5vh, 70px); font-weight: 300; letter-spacing: -1px; line-height: 1; margin: 0; }
+      h1 small { font-size: 18px; color: var(--suave); font-weight: 400; margin-left: 8px; letter-spacing: 0; }
+      .sub { color: var(--suave); font-size: 13.5px; margin-top: 8px; }
+      .stack { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 14px 0 6px; background: rgba(255,255,255,.05); }
+      .leyenda { display: flex; justify-content: space-between; font-size: 13px; color: var(--suave); gap: 10px; }
+      .leyenda b, .ahora b { color: var(--txt); }
+      .ahora { font-size: 14px; color: var(--suave); margin-top: 10px; } .ahora b { color: var(--naranja); font-size: 18px; }
+      h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--suave); font-weight: 600; margin: 0 0 1.2vh; }
+      .mini { flex: 1; padding: 0; overflow: hidden; }
+      .mini .marco { position: absolute; left: -25%; width: 136%; top: 50%; aspect-ratio: var(--ar); transform: translateY(-50%); }
+      .mini img { position: absolute; inset: 0; width: 100%; height: 100%; filter: brightness(.5) saturate(.75); }
+      .mini img.noche { filter: brightness(1.15); }
+      .mini h2 { position: absolute; left: 16px; top: 12px; z-index: 1; }
+      .tag { position: absolute; transform: translate(-50%,-50%); background: rgba(10,12,16,.82); border: 1px solid rgba(255,181,71,.55);
+             border-radius: 12px; padding: 4px 9px; font-size: 13px; white-space: nowrap; }
+      .tag b { color: var(--naranja); } .tag i { display: block; font-style: normal; font-size: 11px; color: var(--suave); }
+      .ah { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: .7vh 0; border-bottom: 1px solid var(--linea); font-size: 14px; }
+      .ah:last-child { border: 0; } .ah b { color: #8fe3a8; font-size: 16px; white-space: nowrap; }
+      .graf { flex: 0 0 36%; display: flex; flex-direction: column; }
+      .graf .ley { position: absolute; right: 1.5vw; top: 2vh; display: flex; gap: 14px; font-size: 12px; color: var(--suave); }
+      .graf .ley i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+      .barras { flex: 1; display: flex; align-items: flex-end; gap: var(--hueco, 10px); border-bottom: 1px solid var(--linea); padding: 18px 2px 0; min-height: 0; }
+      .barras .m { flex: 1; display: flex; flex-direction: column-reverse; position: relative; height: 100%; justify-content: flex-start; }
+      .barras .m i { display: block; flex: none; } .barras .m i:last-child { border-radius: 4px 4px 0 0; }
+      .barras .m .v { position: absolute; width: 100%; text-align: center; font-size: 11.5px; color: var(--suave); transform: translateY(-110%); }
+      .barras .m.real .v { color: var(--txt); font-weight: 600; }
+      .barras .m.fut { opacity: .15; } .barras .m.curso { opacity: .5; }
+      .ejes { display: flex; gap: var(--hueco, 10px); padding: 5px 2px 0; } .ejes span { flex: 1; text-align: center; font-size: 12px; color: var(--suave); }
+      .lista { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 2.2vw; align-content: start; flex: 1; }
+      .fila { display: grid; grid-template-columns: 16px 1fr auto 60px; align-items: center; gap: 2px 8px; padding: .55vh 0 .2vh; font-size: 14.5px; cursor: default; }
+      .fila[data-info] { cursor: pointer; }
+      .fila .p { width: 11px; height: 11px; border-radius: 3px; }
+      .fila .n small { display: block; font-size: 11.5px; color: var(--suave); }
+      .fila .k { text-align: right; color: var(--suave); font-size: 13px; } .fila .e { text-align: right; font-weight: 600; }
+      .fila .b { grid-column: 2 / 5; height: 4px; border-radius: 2px; background: rgba(255,255,255,.05); }
+      .fila .b i { display: block; height: 100%; border-radius: 2px; }
+      .rayas { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.32) 0 4px, rgba(255,255,255,.08) 4px 8px) !important; background-color: transparent !important; }
+      .pie { font-size: 12px; color: var(--suave); margin-top: auto; padding-top: 8px; }
+      .aviso { padding: 24px; color: var(--suave); }
+      @media (max-width: 900px) {
+        ha-card { height: auto; overflow: visible; } .pag { position: static; grid-template-columns: 1fr; }
+        .sup { grid-column: 1; flex-wrap: wrap; } .tarifa { display: none; } .mini { min-height: 260px; } .graf { min-height: 260px; } .cols { grid-template-columns: 1fr; }
+      }
+    </style><ha-card><div class="aviso">Cargando la energía…</div></ha-card>`;
+    this._card = this._root.querySelector('ha-card');
+    let x0 = null, y0 = null;  // deslizar a izquierda/derecha cambia entre hoy, mes y año
+    this._card.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; });
+    this._card.addEventListener('pointerup', (e) => {
+      if (x0 == null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > 1.5 * Math.abs(dy)) this._mover(dx < 0 ? 1 : -1);
+    });
+  }
+
+  _mover(paso) {
+    const V = ['hoy', 'mes', 'anio'], i = V.indexOf(this._vista) + paso;
+    if (i < 0 || i >= V.length) return;
+    this._vista = V[i]; this._pintar();
+  }
+
+  async _cargar() {
+    try {
+      const [ri, ra] = await Promise.all([fetch(`${this._path}indice.json?v=${VERSION}`, { cache: 'no-cache' }),
+        fetch(`${this._path}aparatos.json?v=${VERSION}`, { cache: 'no-cache' })]);
+      this._indice = await ri.json();
+      this._modelo = new Energia(this._config, (await ra.json()).aparatos || []);
+    } catch (e) { this._card.innerHTML = `<div class="aviso">No encuentro ${this._path}indice.json o aparatos.json</div>`; return; }
+    this._card.style.setProperty('--ar', (this._indice.resolucion[0] / this._indice.resolucion[1]).toFixed(4));
+    const cab = this._config.header ?? 'var(--header-height, 56px)';
+    this._card.style.setProperty('--cabecera', typeof cab === 'number' ? `${cab}px` : cab);
+    this._kioskoAplicado = undefined;
+    if (this._hass) this.hass = this._hass;
+  }
+
+  async _actualizar() {
+    if (this._cargando) return;
+    this._cargando = true;
+    try { await this._modelo.cargar(this._hass); this._error = null; } catch (e) { this._error = e.message || String(e); }
+    this._cargando = false;
+    this._pintar();
+  }
+
+  _imagenFondo() {  // la del diorama: de día, la posición de sol más cercana; de noche, la de noche
+    const s = this._hass.states['sun.sun'];
+    const el = s ? Number(s.attributes.elevation) : 30, az = s ? Number(s.attributes.azimuth) : 210;
+    if (el < 3 || !this._indice.sol || !this._indice.sol.length) return 'noche.jpg';
+    const d = (p) => Math.hypot(((p.az - az + 540) % 360) - 180, p.el - el);
+    return [...this._indice.sol].sort((p, q) => d(p) - d(q))[0].archivo;
+  }
+
+  _pintar() {
+    if (!this._modelo || !this._modelo.cargadoEn) {
+      if (this._error) this._card.innerHTML = `<div class="aviso">No puedo leer las estadísticas de energía: ${this._error}</div>`;
+      return;
+    }
+    this._pintadoEn = Date.now();
+    const M = this._modelo, C = this._config, v = this._vista, r = M.resumen(v);
+    const E = Energia.euros, K = Energia.kwh, P = C.price ?? 0.215;
+    const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const diasMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    // --- total
+    let cab, sub, ahora = '';
+    if (v === 'hoy') {
+      cab = `${E(r.total, 2)}<small>hoy, hasta las ${hora}</small>`;
+      sub = `≈ ${K(r.kwh)} · media de tu casa: ${E(((C.yearly_kwh || 0) * P) / 365 + (C.fixed_day || 0), 2)}/día`;
+    } else if (v === 'mes') {
+      const prev = (r.total / r.horas) * 24 * diasMes;
+      cab = `${E(r.total, 0)}<small>este mes · previsión ${E(prev, 0)}</small>`;
+      sub = `≈ ${K(r.kwh)} en ${Math.ceil(r.horas / 24)} días`;
+    } else {
+      cab = `${E(r.total, 0)}<small>al año · ${E(r.total / 12, 0)}/mes</small>`;
+      const fact = Object.entries(C.billed || {}).map(([a, e]) => `${a} → ${E(Number(e), 0)}`).join(' · ');
+      sub = `${K(r.kwh)} al año · ${K(r.kwh / 365)} al día${fact ? `<br>Facturado: ${fact}` : ''}`;
+    }
+    const wMedidos = M.lista.reduce((t, a) => t + M.vatiosAhora(a), 0);
+    if (v === 'hoy') ahora = `<div class="ahora">Ahora mismo: <b>${Math.round(wMedidos)} W</b> en lo medido + ~${Math.round(r.fondoW)} W de fondo</div>`;
+    const total = `<div class="card"><h1>${cab}</h1><div class="sub">${sub}</div>
+      <div class="stack"><i style="flex:${r.fijo};background:#3e4552"></i><i style="flex:${r.energia};background:var(--naranja)"></i></div>
+      <div class="leyenda"><span><b>${E(r.fijo, v === 'hoy' ? 2 : 0)}</b> fijo: potencia, contador${C.fixed_day > 1.1 ? ', seguro' : ''}</span><span><b>${E(r.energia, v === 'hoy' ? 2 : 0)}</b> energía</span></div>${ahora}</div>`;
+    // --- diorama pequeño con el coste por zona
+    const tags = Object.entries(r.zonas).map(([h, z]) => {
+      const hab = this._indice.habitaciones[h]; if (!hab) return '';
+      const [u, vv] = hab.centro;
+      const txt = v === 'hoy' ? `<b>${Math.round(z.w)} W</b><i>${hab.nombre.toLowerCase()} · ${E(z.eur, 2)} hoy</i>` : `<b>${E(z.eur)}</b><i>${hab.nombre.toLowerCase()}</i>`;
+      return `<div class="tag" style="left:${u * 100}%;top:${vv * 100}%">${txt}</div>`;
+    }).join('');
+    const fondo = this._imagenFondo();
+    const mini = `<div class="card mini"><h2>${v === 'hoy' ? 'Ahora por zona' : v === 'mes' ? 'Este mes por zona' : 'Al año por zona'}</h2>
+      <div class="marco"><img src="${this._path}${fondo}" alt=""${fondo === 'noche.jpg' ? ' class="noche"' : ''}>${tags}</div></div>`;
+    const ahorros = (C.savings || []).length ? `<div class="card"><h2>Dónde ahorrar</h2>${C.savings.map((s) =>
+      `<div class="ah"><span>${s.text}</span><b>${s.eur < 0 ? '−' : ''}${Math.abs(s.eur)} €/año</b></div>`).join('')}</div>` : '';
+    // --- gráfico
+    const ids = M.lista.map((a) => a.id);
+    let graf;
+    if (v === 'anio') {
+      const ms = M.meses(), max = Math.max(1, ...ms.map((m) => m.eur));
+      graf = `<h2>Factura por mes</h2><div class="ley"><span><i style="background:#3e4552"></i>fijo</span><span><i style="background:var(--naranja)"></i>energía</span>
+        <span>fuerte = factura · claro = mes en curso</span></div>
+        <div class="barras">${ms.map((m) => `<div class="m${m.real ? ' real' : m.enCurso ? ' curso' : ''}">${m.eur ? `
+          <i style="height:${((m.eur - m.energia) / max) * 88}%;background:#3e4552"></i><i style="height:${(m.energia / max) * 88}%;background:var(--naranja)"></i>
+          <span class="v" style="bottom:${(m.eur / max) * 88}%">${Math.round(m.eur)} €</span>` : '<span class="v" style="bottom:0">—</span>'}</div>`).join('')}</div>
+        <div class="ejes">${ms.map((m) => `<span>${m.etiqueta}</span>`).join('')}</div>`;
+    } else {
+      const bs = M.barras(v), orden = ['fondo', ...ids];
+      const max = Math.max(0.05, ...bs.map((b) => Object.values(b.partes).reduce((t, x) => t + x, 0)));
+      graf = `<h2>${v === 'hoy' ? 'Hora a hora · kWh' : 'Día a día · kWh'}</h2>
+        <div class="ley"><span><i class="rayas"></i>fondo sin medir</span><span>el resto sin medir no sale aquí${C.total_energy ? '' : ' (no hay contador de la casa)'}</span></div>
+        <div class="barras" style="--hueco:${v === 'hoy' ? 5 : 3}px">${bs.map((b) => `<div class="m${b.futuro ? ' fut' : ''}">${orden.map((id, i) =>
+          `<i class="${id === 'fondo' ? 'rayas' : ''}" style="height:${((b.partes[id] || 0) / max) * 92}%;background:${color(id, i)}"></i>`).join('')}</div>`).join('')}</div>
+        <div class="ejes" style="--hueco:${v === 'hoy' ? 5 : 3}px">${bs.map((b) => `<span>${b.etiqueta}</span>`).join('')}</div>`;
+    }
+    // --- lista de aparatos
+    const mx = Math.max(0.001, ...r.filas.map((f) => f.kwh));
+    const fila = (f, i) => { const a = f.ids && f.ids.length === 1 && M.lista.find((x) => x.id === f.id), info = a && (a.info || M.ent(a));
+      return `<div class="fila"${info ? ` data-info="${info}"` : ''}><i class="p${f.sinMedir ? ' rayas' : ''}" style="background:${color(f.id, i)}"></i>
+        <div class="n">${f.nombre}<small>${f.sub}</small></div><div class="k">${K(f.kwh)}</div><div class="e">${E(f.eur)}</div>
+        <div class="b"><i class="${f.sinMedir ? 'rayas' : ''}" style="width:${Math.max(1, (f.kwh / mx) * 100)}%;background:${color(f.id, i)}"></i></div></div>`; };
+    const mitad = Math.ceil(r.filas.length / 2);
+    const titulo = { hoy: 'Hoy por aparato', mes: 'Este mes por aparato', anio: '¿En qué se va la energía? · al año' }[v];
+    const lista = `<div class="card lista"><h2>${titulo}</h2><div class="cols"><div>${r.filas.slice(0, mitad).map(fila).join('')}</div>
+      <div>${r.filas.slice(mitad).map((f, i) => fila(f, i + mitad)).join('')}</div></div>
+      <div class="pie">${P.toLocaleString('es-ES')} €/kWh con impuestos · medido con las regletas · rayado = sin medir${v === 'anio' ? ' (factura menos lo medido)' : ''} · estimado mientras haya pocos días de datos</div></div>`;
+    const tabs = ['hoy', 'mes', 'anio'].map((x) => `<button data-v="${x}" class="${x === v ? 'on' : ''}">${{ hoy: 'Hoy', mes: 'Mes', anio: 'Año' }[x]}</button>`).join('');
+    this._card.innerHTML = `<div class="pag">
+      <div class="sup">${C.back ? '<button class="volver">← Casa</button>' : ''}<div class="titulo">⚡ Energía</div><div class="tabs">${tabs}</div>
+        <div class="tarifa">${C.tariff || ''}${C.tariff ? '<br>' : ''}${P.toLocaleString('es-ES')} €/kWh con impuestos</div></div>
+      <div class="col">${total}${mini}${ahorros}</div>
+      <div class="col"><div class="card graf">${graf}</div>${lista}</div></div>`;
+    this._card.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => { this._vista = b.dataset.v; this._pintar(); }));
+    const volver = this._card.querySelector('.volver'); if (volver) volver.addEventListener('click', () => navegar(C.back));
+    this._card.querySelectorAll('.fila[data-info]').forEach((f) => f.addEventListener('click', () =>
+      this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: f.dataset.info }, bubbles: true, composed: true }))));
+  }
+}
+HomeEnergyCard.prototype._kioskoActivo = Home3dCard.prototype._kioskoActivo;
+HomeEnergyCard.prototype._kiosko = Home3dCard.prototype._kiosko;
+
 customElements.define('home-3d-card', Home3dCard);
+customElements.define('home-energy-card', HomeEnergyCard);
 window.customCards = window.customCards || [];
 window.customCards.push({ type: 'home-3d-card', name: 'Home 3D (diorama)', description: 'Diorama de la casa con el sol y las luces reales' });
+window.customCards.push({ type: 'home-energy-card', name: 'Energía de la casa', description: 'Coste de cada aparato con la tarifa de la luz' });
 console.info(`%c home-3d-card ${VERSION} `, 'background:#ffc46b;color:#222;border-radius:3px');

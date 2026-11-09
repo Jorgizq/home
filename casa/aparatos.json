@@ -1,13 +1,13 @@
 {
-  "nota": "Aparatos que la tarjeta dibuja en vivo (no están en los renders). Posiciones en cm como layout.json (+Y sur, +X oeste). Los muros están cortados a 140 cm: lo que esté más alto se baja a esa altura. Tras cambiar algo: python tools/aparatos.py (no hace falta Blender).",
+  "nota": "Aparatos que la tarjeta dibuja en vivo (no están en los renders) y que cuenta la página de energía (potencia = enchufe medido; estimado_w = vatios supuestos). Posiciones en cm como layout.json (+Y sur, +X oeste). Los muros están cortados a 140 cm: lo que esté más alto se baja a esa altura. Tras cambiar algo: python tools/aparatos.py (no hace falta Blender).",
   "aparatos": [
     {
-      "id": "monitor_izquierdo", "nombre": "Monitor izquierdo", "tipo": "pantalla", "habitacion": "despacho",
+      "id": "monitor_izquierdo", "nombre": "Monitor izquierdo", "grupo": "Monitores (2)", "tipo": "pantalla", "habitacion": "despacho",
       "potencia": ["sensor.despacho_monitor_izquierdo_potencia"], "umbral": 5, "info": "switch.despacho_monitor_izquierdo",
       "pantalla": { "x": 645, "y": [1084, 1138], "z": [88, 120] }, "brillo": { "x": 672, "y": 1111, "z": 76, "r": 28 }
     },
     {
-      "id": "monitor_derecho", "nombre": "Monitor derecho", "tipo": "pantalla", "habitacion": "despacho",
+      "id": "monitor_derecho", "nombre": "Monitor derecho", "grupo": "Monitores (2)", "tipo": "pantalla", "habitacion": "despacho",
       "potencia": ["sensor.despacho_monitor_derecho_potencia"], "umbral": 5, "info": "switch.despacho_monitor_derecho",
       "pantalla": { "x": 645, "y": [1145, 1199], "z": [88, 120] }, "brillo": { "x": 672, "y": 1172, "z": 76, "r": 28 }
     },
@@ -33,7 +33,7 @@
     },
     {
       "id": "tele", "nombre": "Televisión", "tipo": "tele", "habitacion": "salon",
-      "estado": "media_player.television", "info": "media_player.television", "nota": "LG OLED65C1 (integración LG webOS, 192.168.1.52)",
+      "estado": "media_player.television", "info": "media_player.television", "estimado_w": 100, "nota": "LG OLED65C1 (integración LG webOS, 192.168.1.52). Sin enchufe medido: consumo estimado con las horas encendida.",
       "pantalla": { "x": 350, "y": [1042, 1148], "z": [67, 123] }, "brillo": { "x": 430, "y": 1095, "z": 0, "r": 90 }
     },
     {
@@ -42,6 +42,16 @@
       "potencia": ["sensor.despacho_aire_potencia"], "umbral": 40, "info": "switch.despacho_aire",
       "cuerpo": { "x": 598, "y": [1295, 1375], "z": [114, 138] },
       "flujo": { "x": [590, 380], "y": [1305, 1325, 1345, 1365], "z": [118, 38] }
+    },
+    {
+      "id": "echo_dot", "nombre": "Echo Dot", "grupo": "Echo (2)", "tipo": "estimado", "habitacion": "salon",
+      "estado": "media_player.echo_dot_de_jorge", "info": "media_player.echo_dot_de_jorge", "estimado_w": 3,
+      "nota": "Detrás de la tele. Sin enchufe medido: ~3 W siempre (solo cuenta en la página de energía)."
+    },
+    {
+      "id": "echo_show", "nombre": "Echo Show", "grupo": "Echo (2)", "tipo": "estimado", "habitacion": "cocina",
+      "estado": "media_player.echo_show_de_jorge", "info": "media_player.echo_show_de_jorge", "estimado_w": 3,
+      "nota": "Sin enchufe medido: ~3 W siempre (solo cuenta en la página de energía)."
     }
   ]
 }

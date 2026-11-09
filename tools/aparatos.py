@@ -70,7 +70,7 @@ def main():
 
     salida = []
     for a in cargar('casa/aparatos.json')['aparatos']:
-        o = {k: a[k] for k in ('id', 'nombre', 'tipo', 'habitacion', 'estado', 'potencia', 'umbral', 'info') if a.get(k) is not None}
+        o = {k: a[k] for k in ('id', 'nombre', 'grupo', 'tipo', 'habitacion', 'estado', 'potencia', 'energia', 'umbral', 'info', 'estimado_w') if a.get(k) is not None}
         if 'pantalla' in a: o['pantalla'] = cara(a['pantalla'])
         if 'cuerpo' in a: o['cuerpo'] = cara(a['cuerpo'])
         if 'brillo' in a: o['brillo'] = mancha(a['brillo'])

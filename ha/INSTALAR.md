@@ -56,3 +56,29 @@ views:
    *Número de compilación* → Opciones de desarrollador → **Pantalla activa**.
 5. Fijar la app: Ajustes → Seguridad y privacidad → Más ajustes de seguridad → **Fijar aplicaciones**;
    luego Recientes → icono de la app → **Fijar esta aplicación** (soltar: Atrás + Recientes a la vez).
+
+## Página de energía
+
+Una segunda vista del mismo panel (tipo **Panel**, ruta `energia`) con la tarjeta de energía. Los precios salen de
+la factura y van solo aquí, en la configuración del panel (no en el repo):
+
+```yaml
+      - type: custom:home-energy-card
+        path: /local/diorama/render/salida/
+        back: /dashboard-diorama/casa      # botón «← Casa»
+        price: 0.215                       # €/kWh con impuesto eléctrico e IVA
+        fixed_day: 1.136                   # €/día fijo con impuestos: potencia, contador, bono social y seguro
+        yearly_kwh: 1970                   # consumo anual de la casa (facturas)
+        base_w: 80                         # lo que la casa gasta siempre (curva horaria de la distribuidora, de madrugada)
+        tariff: Iberdrola Plan Estable · 2.0TD · 4,6 kW
+        billed: { 2025: 602.53 }           # facturado por año
+        bills:                             # facturas: mes en que acaba el periodo, kWh y total
+          - { month: 2026-10, kwh: 183, eur: 75.12 }
+        savings:
+          - { text: Bajar la potencia a 3,5 kW, eur: -87 }
+        devices: { tele: media_player.television }
+        # total_energy: sensor.casa_energia   # si algún día hay contador de toda la casa
+```
+
+En el diorama, `energy: /dashboard-diorama/energia` añade la pastilla «⚡ … € hoy» junto a la del tiempo.
+Los aparatos y sus vatios estimados (`estimado_w`) están en `casa/aparatos.json`.

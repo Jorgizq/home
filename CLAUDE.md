@@ -11,7 +11,7 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Áreas creadas en HA (planta "Vivienda"); ids en `layout.json` (`area_ha_id`)
 - ✅ Tarjeta `ha/home-3d-card.js` v0.5.0 (`kiosk: <usuario>` oculta barra y menú sin HACS; encaja en pantalla `fit`; tono 2200–4000 K; panel con brillo y temperatura; pulsación larga = ventana de HA) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
 - ✅ HA enlazado al repo: clon parcial en `/config/www/diorama`; actualizar con `git -C www/diorama pull`
-  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=8`)
+  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=9`)
 - ✅ Tablet en la pared (Samsung Galaxy Tab, Android): usuario `tablet`, app de HA, `kiosk: tablet`, `fit: cover`,
   pantalla activa y app fijada (pasos en `ha/INSTALAR.md`)
 - ✅ Dispositivos de HA revisados (nov 2026): 24 TRADFRI (DIRIGERA por Matter), 6 mandos, Denon AVR-X1400H (salón),
@@ -25,7 +25,15 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
   de la habitación muestra cada aparato con sus W y el total. Demo «Aparatos» en la pastilla del tiempo.
 - ✅ Tele LG OLED65C1 en HA (LG webOS, 192.168.1.52, área Salón): `media_player.television` y `switch.television_pantalla`;
   en `casa/aparatos.json` y en el panel `dashboard-diorama` (`devices: {tele: media_player.television}`).
-- ⏳ Siguiente: Alexa Devices (temperatura por habitación).
+- ✅ Tarjeta v0.7.0: página de energía `custom:home-energy-card` (vista `energia` del panel `dashboard-diorama`):
+  coste de cada aparato hoy / mes / año (deslizar), diorama pequeño con el coste por zona, factura por mes, dónde ahorrar.
+  Tarifa en la configuración de esa tarjeta (no en el repo): Iberdrola Plan Estable 2.0TD 4,6 kW, 0,215 €/kWh con
+  impuestos, 1,136 €/día fijo, 1.970 kWh/año, fondo de la casa 80 W. Medido = regletas; tele = 100 W × horas encendida;
+  Echo = 3 W; «fondo sin medir» = 80 W − mínimos medidos; «resto sin medir» = factura − todo lo demás.
+  En el diorama, `energy: /dashboard-diorama/energia` pone la pastilla «⚡ … € hoy» (lee la tarifa de esa tarjeta).
+- ✅ Alexa Devices conectada (Echo Dot → salón, detrás de la tele; Echo Show → cocina). Amazon la frena a menudo
+  («too many requests»): no reintentar seguido.
+- ⏳ Siguiente: temperatura del Echo Dot en el diorama; contador de toda la casa (Shelly EM o Datadis → `total_energy`).
 
 ## Cómo trabajar desde el escritorio
 - Para hablar con HA: navegador (Claude in Chrome). Desde el portátil de empresa la terminal no llega a HA; desde el Mac sí debería.
@@ -42,7 +50,7 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 | Ruta | Qué es |
 |---|---|
 | `casa/layout.json` | Plano: habitaciones (polígonos), aberturas, ventanas, muebles, orientación, cámara. **cm**, +Y = sur (fachada del salón), +X = oeste, origen esquina inferior izquierda del escaneo enderezado (giro 24,6°) |
-| `casa/aparatos.json` | Aparatos dibujados en vivo (tipo, x/y/z en cm, entidades de estado y potencia) → `tools/aparatos.py` |
+| `casa/aparatos.json` | Aparatos dibujados en vivo y contados en la página de energía (tipo, x/y/z en cm, entidades de estado y potencia, `estimado_w`, `grupo`) → `tools/aparatos.py` |
 | `casa/luces.json` | Puntos de luz (n, tipo, x/y/z en cm, entidad de HA o `null` = interruptor sin domótica) |
 | `casa/modelo.py` | Construye la escena desde layout.json y renderiza (Blender como módulo `bpy` 5.2.3) |
 | `render/casa.blend` + `render/renderizar.py` | Escena lista + script que genera todas las imágenes y `indice.json` (reanudable; `--solo`, `--max`, `--muestras`) |
