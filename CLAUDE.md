@@ -11,7 +11,7 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Áreas creadas en HA (planta "Vivienda"); ids en `layout.json` (`area_ha_id`)
 - ✅ Tarjeta `ha/home-3d-card.js` v0.5.0 (`kiosk: <usuario>` oculta barra y menú sin HACS; encaja en pantalla `fit`; tono 2200–4000 K; panel con brillo y temperatura; pulsación larga = ventana de HA) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
 - ✅ HA enlazado al repo: clon parcial en `/config/www/diorama`; actualizar con `git -C www/diorama pull`
-  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=9`)
+  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=10`)
 - ✅ Tablet en la pared (Samsung Galaxy Tab, Android): usuario `tablet`, app de HA, `kiosk: tablet`, `fit: cover`,
   pantalla activa y app fijada (pasos en `ha/INSTALAR.md`)
 - ✅ Dispositivos de HA revisados (nov 2026): 24 TRADFRI (DIRIGERA por Matter), 6 mandos, Denon AVR-X1400H (salón),
@@ -25,11 +25,11 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
   de la habitación muestra cada aparato con sus W y el total. Demo «Aparatos» en la pastilla del tiempo.
 - ✅ Tele LG OLED65C1 en HA (LG webOS, 192.168.1.52, área Salón): `media_player.television` y `switch.television_pantalla`;
   en `casa/aparatos.json` y en el panel `dashboard-diorama` (`devices: {tele: media_player.television}`).
-- ✅ Tarjeta v0.7.0: página de energía `custom:home-energy-card` (vista `energia` del panel `dashboard-diorama`):
+- ✅ Tarjeta v0.7.1: página de energía `custom:home-energy-card` (vista `energia` del panel `dashboard-diorama`):
   coste de cada aparato hoy / mes / año (deslizar), diorama pequeño con el coste por zona, factura por mes, dónde ahorrar.
   Tarifa en la configuración de esa tarjeta (no en el repo): Iberdrola Plan Estable 2.0TD 4,6 kW, 0,215 €/kWh con
   impuestos, 1,136 €/día fijo, 1.970 kWh/año, fondo de la casa 80 W. Medido = regletas; tele = 100 W × horas encendida;
-  Echo = 3 W; «fondo sin medir» = 80 W − mínimos medidos; «resto sin medir» = factura − todo lo demás.
+  Echo = 3 W; «fondo sin medir» = 80 W − consumo mínimo habitual (percentil 20 por hora) de lo medido; «resto sin medir» = factura − todo lo demás.
   En el diorama, `energy: /dashboard-diorama/energia` pone la pastilla «⚡ … € hoy» (lee la tarifa de esa tarjeta).
 - ✅ Alexa Devices conectada (Echo Dot → salón, detrás de la tele; Echo Show → cocina). Amazon la frena a menudo
   («too many requests»): no reintentar seguido.

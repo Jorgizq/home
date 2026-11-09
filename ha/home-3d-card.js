@@ -28,7 +28,7 @@
  *                          #   Para editar el panel en ese dispositivo, añade ?editar a la dirección.
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.7.0';
+const VERSION = '0.7.1';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -1110,15 +1110,15 @@ class Energia {
     return (a.estimado_w || 0) * 8.76;
   }
 
-  // lo que la casa gasta siempre y no se mide: base_w menos el mínimo de cada aparato medido y lo estimado fijo
+  // lo que la casa gasta siempre y no se mide: base_w menos lo mínimo habitual de cada aparato medido y lo estimado fijo
   fondoW() {
     let medido = 0;
     for (const a of this.lista) {
       if (this.medido(a)) {
         const porHora = {};
         for (const id of Energia.sensores(a)) for (const x of this.horas[id] || []) porHora[x.t] = (porHora[x.t] || 0) + x.c;
-        const v = Object.values(porHora);
-        if (v.length) medido += Math.min(...v) * 1000;
+        const v = Object.values(porHora).sort((x, y) => x - y);  // percentil 20: una hora suelta (la primera, a medias) no cuenta
+        if (v.length) medido += v[Math.floor(v.length * 0.2)] * 1000;
       } else if (a.tipo !== 'tele') medido += a.estimado_w || 0;
     }
     return Math.max(0, this.cfg.base_w - medido);
