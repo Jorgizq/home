@@ -20,6 +20,11 @@
  *   devices:               # aparatos dibujados en vivo (render/salida/aparatos.json): monitores, tele, música, mesa, aire
  *     tele: media_player.lg_c1   # cambia la entidad de un aparato por su id · devices: false = sin aparatos
  *   energy: /dashboard-diorama/energia   # pastilla «⚡ … € hoy» que abre la página de energía (custom:home-energy-card)
+ *   temperatures:          # etiquetas «🌡️ 22,6°» sobre el diorama (toque = historial del sensor)
+ *     - entity: sensor.echo_dot_de_jorge_temperatura
+ *       at: [0.74, 0.36]   # posición en la imagen (0..1); o `room: salon` para ponerla en el centro de esa habitación
+ *                          # Si el sensor se queda «no disponible» (Alexa se corta a ratos), sigue mostrando el último
+ *                          # valor bueno durante una hora.
  *   fit: contain           # contain = cabe entera en la pantalla (por defecto) · cover = llena la pantalla recortando bordes
  *                          # · width = ocupa todo el ancho (como antes)
  *   header: 56px           # alto de la barra de HA que hay que descontar (0 con kiosk-mode)
@@ -28,7 +33,7 @@
  *                          #   Para editar el panel en ese dispositivo, añade ?editar a la dirección.
  * Tocar la pastilla del tiempo (abajo a la izquierda) prueba los efectos aunque no esté lloviendo.
  */
-const VERSION = '0.7.1';
+const VERSION = '0.8.0';
 
 class Home3dCard extends HTMLElement {
   setConfig(config) {
@@ -46,6 +51,7 @@ class Home3dCard extends HTMLElement {
     this._hass = hass;
     this._kiosko();
     if (!this._indice) return;
+    this._pintarTemperaturas();
     if (this._pastillaEnergia) {
       this._iniciarEnergia();
       if (Date.now() - (this._energiaPintada || 0) > 30e3) this._pintarEnergia();
@@ -119,6 +125,11 @@ class Home3dCard extends HTMLElement {
         .destello { position: absolute; inset: 0; background: #dfe8ff; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
         .pastillas { position: absolute; left: 2%; bottom: 3%; display: flex; gap: 8px; }
         .tiempo.energia b { color: #ffc46b; }
+        .termo { position: absolute; transform: translate(-50%,-50%); display: flex; align-items: center; gap: 4px;
+                 padding: 4px 10px 4px 7px; border-radius: 999px; border: 0; background: rgba(20,20,22,.62); color: #eee;
+                 font: 600 13px/1 var(--paper-font-body1_-_font-family, system-ui, sans-serif); cursor: pointer;
+                 backdrop-filter: blur(4px); box-shadow: 0 1px 4px rgba(0,0,0,.4); white-space: nowrap; transition: opacity .4s; }
+        .termo .icono-t { font-size: 15px; } .termo.viejo { opacity: .55; }
         .tiempo { display: flex; align-items: center; gap: 8px; padding: 6px 12px;
                   border-radius: 999px; border: 0; background: rgba(20,20,22,.6); color: #eee; cursor: pointer;
                   font: 600 14px/1 var(--paper-font-body1_-_font-family, system-ui, sans-serif); backdrop-filter: blur(6px); }
@@ -162,6 +173,7 @@ class Home3dCard extends HTMLElement {
     this._luces = {};  // entidad → <img>, solo mientras está encendida (las imágenes ocultas también gastan memoria)
     if (this._config.rooms) this._montarZonas();
     if (this._config.icons) this._montarIconos();
+    this._montarTemperaturas();
     if (this._config.energy) {
       this._pastillaEnergia = document.createElement('button'); this._pastillaEnergia.className = 'tiempo energia';
       this._pastillaEnergia.innerHTML = '<span class="icono-t">⚡</span><span>Energía</span>';
@@ -214,6 +226,76 @@ class Home3dCard extends HTMLElement {
       b.addEventListener('contextmenu', (ev) => ev.preventDefault());
       this._escena.appendChild(b);
       this._iconos[l.entidad] = b;
+    }
+  }
+
+  // ---------- temperaturas (etiquetas sobre el diorama) ----------
+  _montarTemperaturas() {
+    this._termos = [];
+    for (const t of [].concat(this._config.temperatures || [])) {
+      const cfg = typeof t === 'string' ? { entity: t } : t;
+      if (!cfg || !cfg.entity) continue;
+      const hab = cfg.room && this._indice.habitaciones[cfg.room];
+      const at = cfg.at || (hab && hab.centro) || [0.5, 0.5];
+      const b = document.createElement('button'); b.className = 'termo'; b.style.display = 'none';
+      b.style.left = `${at[0] * 100}%`; b.style.top = `${at[1] * 100}%`;
+      b.addEventListener('click', (ev) => { ev.stopPropagation(); this._masInfo(cfg.entity); });
+      this._escena.appendChild(b);
+      this._termos.push({ entidad: cfg.entity, b, texto: '' });
+      this._buscarUltimaTemperatura(cfg.entity);
+    }
+  }
+
+  // Último valor bueno de cada sensor: en memoria y en el navegador (sobrevive a recargar la página).
+  _guardarTemperatura(entidad, valor, cuando) {
+    this._ultimas = this._ultimas || {};
+    const prev = this._ultimas[entidad];
+    if (prev && prev.cuando >= cuando) return;
+    this._ultimas[entidad] = { valor, cuando };
+    try { localStorage.setItem(`home-3d-card:${entidad}`, JSON.stringify({ valor, cuando })); } catch (e) { /* sin almacenamiento */ }
+  }
+
+  _ultimaTemperatura(entidad) {
+    this._ultimas = this._ultimas || {};
+    if (!this._ultimas[entidad]) {
+      try {
+        const g = JSON.parse(localStorage.getItem(`home-3d-card:${entidad}`) || 'null');
+        if (g && Number.isFinite(g.valor)) this._ultimas[entidad] = g;
+      } catch (e) { /* sin almacenamiento */ }
+    }
+    return this._ultimas[entidad];
+  }
+
+  async _buscarUltimaTemperatura(entidad) {  // al abrir con el sensor caído: el último valor de la última hora
+    if (!this._hass || !this._hass.callWS) return;
+    try {
+      const h = await this._hass.callWS({ type: 'history/history_during_period', entity_ids: [entidad],
+        start_time: new Date(Date.now() - 3600e3).toISOString(), minimal_response: true, no_attributes: true });
+      for (const x of (h && h[entidad]) || []) {
+        const v = Number(x.s);
+        if (x.s !== '' && Number.isFinite(v)) this._guardarTemperatura(entidad, v, (x.lu || x.lc) * 1000);
+      }
+      this._pintarTemperaturas();
+    } catch (e) { /* sin historial: esperamos al próximo valor */ }
+  }
+
+  _pintarTemperaturas() {
+    if (!this._termos || !this._hass) return;
+    for (const t of this._termos) {
+      const s = this._hass.states[t.entidad];
+      const v = s ? Number(s.state) : NaN;
+      if (s && s.state !== '' && Number.isFinite(v)) this._guardarTemperatura(t.entidad, v, Date.now());  // disponible ahora = dato vigente
+      const u = this._ultimaTemperatura(t.entidad);
+      const edad = u ? Date.now() - u.cuando : Infinity;
+      const ver = edad < 3600e3;
+      const texto = ver ? `${u.valor.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}°` : '';
+      const viejo = ver && edad > 20 * 60e3;  // más de 20 min sin dato nuevo: se ve más apagada
+      if (texto === t.texto && viejo === t.viejo) continue;
+      t.texto = texto; t.viejo = viejo;
+      t.b.style.display = ver ? '' : 'none';
+      t.b.classList.toggle('viejo', viejo);
+      t.b.title = (s && s.attributes.friendly_name) || t.entidad;
+      t.b.innerHTML = `<span class="icono-t">🌡️</span><span>${texto}</span>`;
     }
   }
 

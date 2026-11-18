@@ -11,7 +11,7 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
 - ✅ Áreas creadas en HA (planta "Vivienda"); ids en `layout.json` (`area_ha_id`)
 - ✅ Tarjeta `ha/home-3d-card.js` v0.5.0 (`kiosk: <usuario>` oculta barra y menú sin HACS; encaja en pantalla `fit`; tono 2200–4000 K; panel con brillo y temperatura; pulsación larga = ventana de HA) (sol, luces con fundido, iconos, panel, tiempo, hora dorada/azul, hojas, murciélagos, aviones, golondrinas)
 - ✅ HA enlazado al repo: clon parcial en `/config/www/diorama`; actualizar con `git -C www/diorama pull`
-  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=10`)
+  y subir `?v=` del recurso `/local/diorama/ha/home-3d-card.js` cuando cambie la tarjeta (va por `?v=11`)
 - ✅ Tablet en la pared (Samsung Galaxy Tab, Android): usuario `tablet`, app de HA, `kiosk: tablet`, `fit: cover`,
   pantalla activa y app fijada (pasos en `ha/INSTALAR.md`)
 - ✅ Dispositivos de HA revisados (nov 2026): 24 TRADFRI (DIRIGERA por Matter), 6 mandos, Denon AVR-X1400H (salón),
@@ -33,7 +33,10 @@ Rama de trabajo: `claude/intelligent-hypatia-tapfw6` (`main` solo tiene el escan
   En el diorama, `energy: /dashboard-diorama/energia` pone la pastilla «⚡ … € hoy» (lee la tarifa de esa tarjeta).
 - ✅ Alexa Devices conectada (Echo Dot → salón, detrás de la tele; Echo Show → cocina). Amazon la frena a menudo
   («too many requests»): no reintentar seguido.
-- ⏳ Siguiente: temperatura del Echo Dot en el diorama; contador de toda la casa (Shelly EM o Datadis → `total_energy`).
+- ✅ Tarjeta v0.8.0: `temperatures` pone etiquetas «🌡️ 22,6°» sobre el diorama (toque = historial). Salón:
+  `sensor.echo_dot_de_jorge_temperatura` en `at: [0.74, 0.36]` (junto a la tele). Como Alexa se corta a ratos, enseña el
+  último valor bueno hasta 1 h (más apagado pasados 20 min) y, al abrir con el sensor caído, lo busca en el historial.
+- ⏳ Siguiente: contador de toda la casa (Shelly EM o Datadis → `total_energy`); válvulas IKEA LILJEBAGGE (temperatura por habitación) cuando salgan en España.
 
 ## Cómo trabajar desde el escritorio
 - Para hablar con HA: navegador (Claude in Chrome). Desde el portátil de empresa la terminal no llega a HA; desde el Mac sí debería.
